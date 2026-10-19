@@ -1,7 +1,7 @@
 # 02 - FST and Noisy Protocol
 
 **Mission 2 | USSE Noosphere | Squadron LeCun | Role: Communications & Protocol Officer**
-**File:** `fst_dialogue_manager.py` (full code in section 5)
+**File:** `fst_dialogue_manager.py` (full code in section 8)
 
 ## 1. Purpose
 
