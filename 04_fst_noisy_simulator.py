@@ -3,7 +3,8 @@ Mission 02 - FST Dialogue Manager + Noisy Channel Simulator
 Role: Systems Architect (Squadron LeCun)
 
 What this script does, in short:
-1. A small state machine (FST) runs the conversation: INIT -> GREETING ->
+1. The conversation is run by the FSTDialogueManager from fst_dialogue_manager.py
+   (the Communications & Protocol Officer's class): INIT -> GREETING ->
    COLLECT_SLOTS -> CONFIRMATION -> TERMINAL (or FALLBACK if something goes wrong).
 2. Every reply goes through a "noisy channel": at most 7 words, and one noise
    word from a fixed list is added.
@@ -12,13 +13,18 @@ What this script does, in short:
 4. At the end it writes the full 10-turn conversation to
    05_Noisy_Interrogation_Transcript.md
 
-Run it:
+Run it (fst_dialogue_manager.py must be in the same folder):
     python 04_fst_noisy_simulator.py            # offline, scripted user, no API key
     python 04_fst_noisy_simulator.py --llm      # the user side is played by an LLM
                                                 # (needs: pip install anthropic and ANTHROPIC_API_KEY)
 
 The FST itself is plain code. The LLM is only used (optionally) to play the human.
 That keeps the dialogue control deterministic and the human side flexible.
+
+History: the first version of this file had its own, simpler chatbot. The Entropy &
+Hazard Audit (03_Entropy_Hazard_Audit.md) broke it in several ways. That version is
+still in the git history (commit before this change) so the audit numbers can be
+reproduced. This version uses the sturdier class from role 2 instead.
 """
 
 import math
@@ -27,90 +33,42 @@ import re
 import sys
 from collections import Counter
 
-NOISE_VOCAB = ["Banana", "Labyrinth", "Quantum", "Midnight", "Velocity", "Green", "Cosmological"]
+from fst_dialogue_manager import FSTDialogueManager as RoleTwoFST, NOISE_TOKENS, T
+
+NOISE_VOCAB = NOISE_TOKENS
 MAX_WORDS = 7
 STATES = ["INIT", "GREETING", "COLLECT_SLOTS", "CONFIRMATION", "TERMINAL", "FALLBACK"]
 
 
 # ---------------------------------------------------------------------------
-# 1. The state machine
+# 1. The state machine: role 2's class, but we ask it for the CLEAN reply.
+#    The noise is added later by the channel below, so we can measure what the
+#    noise costs. (The class normally adds its own noise word; here we leave
+#    that slot empty and tidy the sentence.)
 # ---------------------------------------------------------------------------
-class FSTDialogueManager:
-    """Deterministic dialogue control. Same input in the same state -> same output."""
+class FSTDialogueManager(RoleTwoFST):
+    """Same states, same slot memory, same rules. Only the reply text is 'clean'.
+    (Named FSTDialogueManager so the audit script can use it unchanged.)"""
 
-    def __init__(self):
-        self.state = "INIT"
-        self.slot_memory = {}
-        self.fallback_count = 0
+    # The audit script and the old simulator use this name, so keep it:
+    def process_utterance(self, text):
+        return self.step(text)
 
-    def process_utterance(self, user_input: str) -> str:
-        text = user_input.strip()
-        upper = text.upper()
-
-        if self.state == "INIT":
-            self.state = "GREETING"
-            return "AURA online. Where are we going?"
-
-        if self.state == "GREETING":
-            destination = self._extract_destination(text)
-            if not destination:
-                return self._bad_input("Destination unclear. Repeat it.")
-            self.slot_memory["destination"] = destination
-            self.fallback_count = 0
-            self.state = "COLLECT_SLOTS"
-            return f"Destination {destination}. Which warp speed?"
-
-        if self.state == "COLLECT_SLOTS":
-            if "speed" not in self.slot_memory:
-                match = re.search(r"\b([1-9])\b", text)
-                if not match:
-                    return self._bad_input("Speed must be warp one to nine.")
-                self.slot_memory["speed"] = int(match.group(1))
-                self.fallback_count = 0
-                return "Speed saved. Clearance code, please?"
-            match = re.search(r"[A-Z]+-[A-Z]+-\d+", upper)
-            if not match:
-                return self._bad_input("Clearance code format: WORD-WORD-NUMBER.")
-            self.slot_memory["clearance"] = match.group(0)
-            self.fallback_count = 0
-            self.state = "CONFIRMATION"
-            return (f"Confirm {self.slot_memory['destination']}, "
-                    f"warp {self.slot_memory['speed']}? Yes or no?")
-
-        if self.state == "CONFIRMATION":
-            if re.search(r"\b(YES|YEAH|CONFIRM|OK)\b", upper):
-                self.state = "TERMINAL"
-                return "Course locked. Mission complete."
-            self.state = "FALLBACK"
-            return "Not confirmed. Falling back."
-
-        if self.state == "FALLBACK":
-            return "Fallback active. Restart needed."
-        return "Done. Channel closed."
-
-    def _bad_input(self, message: str) -> str:
-        """Count bad inputs. After 2 in a row we go to FALLBACK."""
-        self.fallback_count += 1
-        if self.fallback_count >= 2:
-            self.state = "FALLBACK"
-            return "Too many errors. Falling back."
-        return message
-
-    @staticmethod
-    def _extract_destination(text: str) -> str:
-        # Keep it simple: a destination is 1-3 words made of letters/digits.
-        cleaned = re.sub(r"(?i)^(go to|take us to|to|we go to|destination is)\s+", "", text.strip())
-        cleaned = re.sub(r"[^A-Za-z0-9 ]", "", cleaned).strip()
-        if 0 < len(cleaned.split()) <= 3:
-            return cleaned.title()
-        return ""
+    def _emit(self, key, **kw):
+        text = T[key].format(N="", **kw)
+        text = re.sub(r"\s+", " ", text)
+        text = re.sub(r"\s*,\s*([?.!])", r"\1", text)   # "warp 7, ?" -> "warp 7?"
+        text = re.sub(r"\s+([,?.!])", r"\1", text).strip()
+        text = re.sub(r"(^|[.?!] )([a-z])", lambda m: m.group(1) + m.group(2).upper(), text)
+        return text
 
 
 # ---------------------------------------------------------------------------
 # 2. The noisy channel
 # ---------------------------------------------------------------------------
 class NoisyChannel:
-    """Cuts a reply to MAX_WORDS and puts in one noise word (it first cuts the reply to 6 words, so the 7-word limit is never broken)."""
+    """Cuts a reply to MAX_WORDS - 1 words and puts in one noise word, so the
+    7-word limit is never broken."""
 
     def __init__(self, seed=7):
         self.rng = random.Random(seed)  # fixed seed -> same transcript every run
@@ -151,10 +109,10 @@ def kept_info(clean: str, noisy: str) -> float:
 # 10 user turns. Turn 4 is a deliberately odd input to test the FST.
 SCRIPTED_USER = [
     "Hello",
-    "Proxima Centauri",
-    "Warp 7",
+    "to Proxima Centauri",
+    "warp 7",
     "whatever you think is best",   # odd input: not a clearance code
-    "CLEARANCE-ALPHA-9",
+    "code CLEARANCE-ALPHA-9",
     "yes",
     "thanks",
     "anything else?",
@@ -194,17 +152,17 @@ def run(use_llm=False):
         else:
             user_text = scripted
 
-        state_before = fst.state
-        clean = fst.process_utterance(user_text)
+        state_before = fst.state.value
+        clean = fst.step(user_text)
         noisy = channel.transmit(clean)
-        state_after = fst.state
+        state_after = fst.state.value
 
         assert len(noisy.split()) <= MAX_WORDS, "7-word limit broken"
         assert any(n in noisy.split() for n in NOISE_VOCAB), "no noise word"
 
         rows.append({
             "turn": turn, "user": user_text, "before": state_before, "after": state_after,
-            "clean": clean, "noisy": noisy,
+            "clean": clean, "noisy": noisy, "strikes": fst.strikes,
             "h_clean": entropy(clean), "h_noisy": entropy(noisy),
             "kept": kept_info(clean, noisy),
         })
@@ -225,6 +183,7 @@ def write_transcript(fst, rows, path="05_Noisy_Interrogation_Transcript.md"):
         "# Mission 2 - Noisy Interrogation Transcript",
         "",
         "Squad: Squadron LeCun. Role: Systems Architect.",
+        "Dialogue control: `FSTDialogueManager` from `fst_dialogue_manager.py` (role 2).",
         "Rules: replies are at most 7 words and carry one noise word "
         "(" + ", ".join(NOISE_VOCAB) + ").",
         "",
@@ -246,7 +205,7 @@ def write_transcript(fst, rows, path="05_Noisy_Interrogation_Transcript.md"):
         "",
         trace,
         "",
-        f"Final state: **{fst.state}**. Saved slots: `{fst.slot_memory}`",
+        f"Final state: **{fst.state.value}**. Saved slots: `{fst.slot_memory}`",
         "",
         "## Channel numbers",
         "",
@@ -256,16 +215,20 @@ def write_transcript(fst, rows, path="05_Noisy_Interrogation_Transcript.md"):
         "",
         "## What I noticed",
         "",
-        "- The state machine never broke the 7-word rule, because the channel cuts the "
-        "reply before adding the noise word. That cut is where information is lost: "
-        "long replies lose their last words.",
-        "- Turn 4 is an odd answer (not a clearance code). The FST counts it as a bad "
-        "input and asks again instead of crashing. Two bad inputs in a row would send it to FALLBACK.",
+        "- The 7-word rule was never broken, because the channel cuts the reply before "
+        "adding the noise word (the script asserts this on every turn). That cut is where "
+        "information can be lost: a long reply loses its last words.",
+        "- Turn 4 is an odd answer (not a clearance code). The FST counts it as one strike "
+        "and asks for the code again instead of crashing. Three strikes in a row would send "
+        "it to FALLBACK, and a good answer resets the count.",
         "- After the course is confirmed the machine is in TERMINAL, so the last turns only "
         "get a short closing reply.",
         "- The noise word does not change the state, but a human reading the reply has to "
         "ignore it. That is the Shannon idea: the message is still there, "
         "just with a worse signal.",
+        "- This version uses the class from role 2. The first version of this simulator had "
+        "a simpler chatbot that the Entropy & Hazard Audit broke (sarcasm and \"do not "
+        "confirm\" counted as yes). That version is still in the git history.",
         "",
     ]
     with open(path, "w", encoding="utf-8") as f:
@@ -277,6 +240,6 @@ if __name__ == "__main__":
     fst, rows = run(use_llm="--llm" in sys.argv)
     print_log(rows)
     print("State trace:", " -> ".join([rows[0]["before"]] + [r["after"] for r in rows]))
-    print("Final state:", fst.state, "| Slots:", fst.slot_memory)
+    print("Final state:", fst.state.value, "| Slots:", fst.slot_memory)
     write_transcript(fst, rows)
     print("Saved 05_Noisy_Interrogation_Transcript.md")
