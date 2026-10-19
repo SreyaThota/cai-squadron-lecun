@@ -194,3 +194,7 @@ print("turn 5 'or no?' option never shown:", f"{no_option_lost / N:.1%}")
 print("avg kept over all turns            :", f"{kept_sum / (N * 10):.1%}")
 print("avg entropy shift noisy-clean      :", f"{dh_sum / (N * 10):+.3f} bits/char")
 ```
+
+## Sign-off
+
+- [x] Security & Ethics Sentinel: Entropy & hazard audit verified.
