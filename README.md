@@ -16,7 +16,12 @@
 
 ## 🛰️ Mission 03: Station Roles & Deliverables Status
 
-- [ ] **Part 1: Systems Architect** (`01_MultiHead_Attention_Core.py`) — Scaled Dot-Product & Multi-Head Self-Attention from scratch.
+- [x] **Part 1: Systems Architect** (`01_MultiHead_Attention_Core.py`) — **COMPLETED**  
+  * Scaled Dot-Product & Multi-Head Self-Attention from scratch in pure PyTorch.
+  * Linear projections $W_Q, W_K, W_V, W_O$ and multi-head tensor splitting into $h$ heads.
+  * Lower-triangular causal attention masking ($-\infty$ above diagonal).
+  * Empirical variance preservation validation ($\frac{1}{\sqrt{d_k}}$ preserves unit variance $\sigma^2 \approx 1.0$).
+  * Automated tests for PyTorch reference equivalence and future information leakage prevention.
 - [ ] **Part 2: Communications & Protocol Officer** (`02_RoPE_Positional_Engine.py`) — Rotary Positional Embeddings (RoPE) 2D vector rotation engine.
 - [x] **Part 3: Data & Payload Specialist** (`03_GQA_and_KVCache_Benchmark.py`) — **COMPLETED by Sreya Thota**  
   * Stateful `KVCache` class with memory tracking and overflow guards.
@@ -50,6 +55,8 @@ cai-squadron-lecun/
         │
         └── week-03/
             └── problem_set/
-                ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Sreya Thota)
+                ├── 01_MultiHead_Attention_Core.py     <- Part 1: COMPLETED DELIVERABLE (Systems Architect)
+                ├── causal_attention_map.png           <- Part 1: Causal Attention Heatmap
+                ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Data & Payload)
                 └── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
 ```
