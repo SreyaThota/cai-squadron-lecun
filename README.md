@@ -28,7 +28,10 @@
   * `GQAAttention` layer with configurable $H_Q$ and $H_{KV}$, supporting both copy-free grouped execution and `repeat_interleave`.
   * Comprehensive benchmark across $N \in \{1024, 4096, 16384, 32768\}$ measuring KV-cache footprint (MB), memory bandwidth traffic (GB/s at 50 tok/s), and empirical per-token decoding latency (ms).
   * Passed all 5 unit tests and generated visualization curve `kv_cache_memory.png`.
-- [ ] **Part 4: Security & Ethics Sentinel** (`04_Memory_Hierarchy_and_Safety_Audit.md`) — FlashAttention IO derivation & KV-Cache DoS / OOM audit.
+- [x] **Part 4: Security & Ethics Sentinel** (`04_Memory_Hierarchy_and_Safety_Audit.md`) — **COMPLETED by Arjun V R**  
+  * FlashAttention IO complexity derivation ($O(N)$ SRAM tiling vs $O(N^2)$ HBM).
+  * Long-context KV-Cache DoS and CUDA Out-Of-Memory (OOM) attack simulation.
+  * Architectural mitigation audit (PagedAttention & Multi-Head Latent Attention - MLA).
 - [ ] **Part 5: Full Integration** (`ps03_solution.ipynb`) — Full squadron assembly.
 
 ---
@@ -58,5 +61,6 @@ cai-squadron-lecun/
                 ├── 01_MultiHead_Attention_Core.py     <- Part 1: COMPLETED DELIVERABLE (Systems Architect)
                 ├── causal_attention_map.png           <- Part 1: Causal Attention Heatmap
                 ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Data & Payload)
-                └── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
+                ├── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
+                └── 04_Memory_Hierarchy_and_Safety_Audit.md <- Part 4: COMPLETED DELIVERABLE (Arjun V R)
 ```
