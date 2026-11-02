@@ -33,6 +33,7 @@ All Mission 04 deliverables completed by **Squadron LeCun**. Every number below 
   * `extract_steering_vector` (contrast of means) and a pre-forward `ActivationSteeringHook` with position targeting and a CAST-style condition gate.
   * Measured alignment-tax audit: truthful replies under a pushy captain 8% → 98%; always-on steering destroys arithmetic, gated steering keeps 100%; operating window α ∈ [+1, +8], recommended α = +3 → `steering_alignment_tax.png`.
 - [x] **Full Solution** (`ps04_solution.ipynb`): runs all four parts plus a cross-part integration check (9 checks pass).
+- [x] **Squadron Documentation** (`mission-04-doc.md` → `mission-04-doc.pdf`): full write-up of methods, measured results, operating bounds and limitations.
 
 ---
 
@@ -106,5 +107,7 @@ cai-squadron-lecun/
                 ├── length_bias_simpo.png
                 ├── 04_Activation_Steering_and_Audit.py <- Part 4: steering & alignment tax
                 ├── steering_alignment_tax.png
-                └── ps04_solution.ipynb                <- Full solution notebook
+                ├── ps04_solution.ipynb                <- Full solution notebook
+                ├── mission-04-doc.md                  <- Squadron documentation (source)
+                └── mission-04-doc.pdf                 <- Squadron documentation (submit on portal + Moodle)
 ```
