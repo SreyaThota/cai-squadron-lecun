@@ -6,7 +6,7 @@ Starship Operational Unit: USSE Noosphere Bridge Crew
 Course: Conversational AI — Winter Semester 2026/27
 Sector: SEC-04-ORI (Betelgeuse & Orion Molecular Cloud Complex)
 Subsystem 04: Plasma Ignition & Ethical Steering Core
-Author: Vasu Midde
+Squadron: LeCun
 
 What this file delivers (see ps04 brief, Part 1)
 ------------------------------------------------

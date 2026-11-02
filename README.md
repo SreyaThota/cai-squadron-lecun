@@ -17,7 +17,7 @@
 
 ## 🔥 Mission 04: Station Roles & Deliverables Status
 
-All Mission 04 deliverables completed by **Vasu Midde**. Every number below is measured on small transformers trained in the scripts (no pretrained LLM download needed), and every script runs with `python <file>.py`.
+All Mission 04 deliverables completed by **Squadron LeCun**. Every number below is measured on small transformers trained in the scripts (no pretrained LLM download needed), and every script runs with `python <file>.py`.
 
 - [x] **Part 1: Systems Architect** (`01_DPO_Loss_Core.py`)
   * Vectorised `get_batch_logps` (prompt/pad masked) and `DPOLoss` with `F.logsigmoid` (finite at a margin of −1000, where naive `log(sigmoid)` is `inf`).
@@ -44,7 +44,7 @@ All Mission 04 deliverables completed by **Vasu Midde**. Every number below is m
   * Lower-triangular causal attention masking ($-\infty$ above diagonal).
   * Empirical variance preservation validation ($\frac{1}{\sqrt{d_k}}$ preserves unit variance $\sigma^2 \approx 1.0$).
   * Automated tests for PyTorch reference equivalence and future information leakage prevention.
-- [x] **Part 2: Communications & Protocol Officer** (`02_RoPE_Positional_Engine.py`) — **COMPLETED by Vasu Midde**  
+- [x] **Part 2: Communications & Protocol Officer** (`02_RoPE_Positional_Engine.py`) — **COMPLETED**  
   * `apply_rope(x, freqs_cis)` complex 2D planar rotation with $\theta_i = 10000^{-2(i-1)/d}$, cross-checked against explicit $2\times2$ rotation matrices.
   * Proof and empirical checks of relative invariance $\langle R_m q, R_n k\rangle = g(q,k,m-n)$: starter test, 200-trial random sweep ($|\delta|$ up to $10^5$), full attention-logit matrix under translation.
   * Context-extrapolation audit (18/64 frequency pairs leave their trained range beyond 4K) with Position Interpolation fix and NTK-aware base.
@@ -58,7 +58,7 @@ All Mission 04 deliverables completed by **Vasu Midde**. Every number below is m
   * FlashAttention IO complexity derivation ($O(N)$ SRAM tiling vs $O(N^2)$ HBM).
   * Long-context KV-Cache DoS and CUDA Out-Of-Memory (OOM) attack simulation.
   * Architectural mitigation audit (PagedAttention & Multi-Head Latent Attention - MLA).
-- [x] **Part 5: Full Integration** (`ps03_solution.ipynb`) — **COMPLETED by Vasu Midde**  
+- [x] **Part 5: Full Integration** (`ps03_solution.ipynb`) — **COMPLETED**  
   * Imports and runs the verification suites of Parts 1-3 directly from the `.py` files.
   * Re-computes the Part 4 audit in code: exact tiled online-softmax attention, 4.0x IO worked example, KV-cache DoS capacity table.
   * `SquadronAttention` = GQA (Part 3) + RoPE (Part 2) + KV-cache, verified against Part 1 MHSA, Part 3 GQA and PyTorch SDPA; demonstrates the RoPE cache-offset trap.
@@ -90,16 +90,16 @@ cai-squadron-lecun/
         │   └── problem_set/
         │       ├── 01_MultiHead_Attention_Core.py     <- Part 1: COMPLETED DELIVERABLE (Systems Architect)
         │       ├── causal_attention_map.png           <- Part 1: Causal Attention Heatmap
-        │       ├── 02_RoPE_Positional_Engine.py       <- Part 2: COMPLETED DELIVERABLE (Vasu Midde)
+        │       ├── 02_RoPE_Positional_Engine.py       <- Part 2: COMPLETED DELIVERABLE (Protocol Officer)
         │       ├── rope_vs_alibi_decay.png            <- Part 2: RoPE vs ALiBi Decay Plot
         │       ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Data & Payload)
         │       ├── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
         │       ├── 04_Memory_Hierarchy_and_Safety_Audit.md <- Part 4: COMPLETED DELIVERABLE (Arjun V R)
-        │       └── ps03_solution.ipynb                <- Part 5: FULL INTEGRATION (Vasu Midde)
+        │       └── ps03_solution.ipynb                <- Part 5: FULL INTEGRATION
         │
         └── week-04/
             └── problem_set/
-                ├── 01_DPO_Loss_Core.py                <- Part 1: DPO loss core (Vasu Midde)
+                ├── 01_DPO_Loss_Core.py                <- Part 1: DPO loss core
                 ├── 02_Implicit_Reward_Evaluator.py    <- Part 2: implicit rewards & BT calibration
                 ├── bt_calibration_curve.png
                 ├── 03_Length_Bias_and_SimPO.py        <- Part 3: length bias & SimPO
