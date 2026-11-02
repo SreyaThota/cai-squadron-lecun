@@ -11,7 +11,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Mission 02** | Sirius Binary System (`SEC-02-CMA`) | *Subsystem 02: Signal Entropy Decoders & Statistical Filters* (+7.1%) | ✅ **Completed & Submitted** | [`docs/weeks/week-02/problem_set/`](./docs/weeks/week-02/problem_set/) |
 | **Mission 03** | Pleiades Open Cluster (`SEC-03-M45`) | *Subsystem 03: Distributed Attention Mesh & KV-Cache Transceiver* (+7.1%) | ✅ **All 5 Parts Complete** | [`docs/weeks/week-03/problem_set/`](./docs/weeks/week-03/problem_set/) |
-| **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete (Vasu Midde)** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
+| **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
 
 ---
 
