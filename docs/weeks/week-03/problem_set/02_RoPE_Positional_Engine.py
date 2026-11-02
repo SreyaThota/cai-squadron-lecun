@@ -6,7 +6,7 @@ Starship Operational Unit: USSE Noosphere Bridge Crew
 Course: Conversational AI — Winter Semester 2026/27
 Sector: SEC-03-M45 (Pleiades Open Cluster, Seven Sisters)
 Subsystem 03: Distributed Multi-Head Attention Mesh & KV-Cache Transceiver
-Author: Vasu Midde
+Squadron: LeCun
 
 What this file delivers (see ps03 brief, Part 2)
 ------------------------------------------------
