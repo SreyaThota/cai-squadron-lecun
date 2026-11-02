@@ -11,6 +11,28 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Mission 02** | Sirius Binary System (`SEC-02-CMA`) | *Subsystem 02: Signal Entropy Decoders & Statistical Filters* (+7.1%) | ✅ **Completed & Submitted** | [`docs/weeks/week-02/problem_set/`](./docs/weeks/week-02/problem_set/) |
 | **Mission 03** | Pleiades Open Cluster (`SEC-03-M45`) | *Subsystem 03: Distributed Attention Mesh & KV-Cache Transceiver* (+7.1%) | ✅ **All 5 Parts Complete** | [`docs/weeks/week-03/problem_set/`](./docs/weeks/week-03/problem_set/) |
+| **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete (Vasu Midde)** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
+
+---
+
+## 🔥 Mission 04: Station Roles & Deliverables Status
+
+All Mission 04 deliverables completed by **Vasu Midde**. Every number below is measured on small transformers trained in the scripts (no pretrained LLM download needed), and every script runs with `python <file>.py`.
+
+- [x] **Part 1: Systems Architect** (`01_DPO_Loss_Core.py`)
+  * Vectorised `get_batch_logps` (prompt/pad masked) and `DPOLoss` with `F.logsigmoid` (finite at a margin of −1000, where naive `log(sigmoid)` is `inf`).
+  * Frozen-reference gradient test on real models: 29/29 policy tensors updated, reference has no gradients and is bit-identical.
+  * End-to-end SFT → DPO: validation loss 0.693 → 0.005, grounded replies 49% → 100%.
+- [x] **Part 2: Communications & Protocol Officer** (`02_Implicit_Reward_Evaluator.py`)
+  * `evaluate_implicit_rewards(policy, ref, batch)`; pairwise accuracy 96.0% vs a 15-vote majority (ceiling 97.3%).
+  * Bradley-Terry reliability diagram vs simulated annotator votes: ECE 0.021, or 0.008 after temperature scaling → `bt_calibration_curve.png`.
+- [x] **Part 3: Data & Payload Specialist** (`03_Length_Bias_and_SimPO.py`)
+  * Length correlation r_len: DPO +0.59 vs SimPO +0.12 on verbosity-biased labels; DPO's length lever is the stop token.
+  * `SimPOLoss` (β = 2.0, γ = 0.5). Measured memory: weights −50%, full training step −5.7% (7B projection −14%) → `length_bias_simpo.png`.
+- [x] **Part 4: Security & Ethics Sentinel** (`04_Activation_Steering_and_Audit.py`)
+  * `extract_steering_vector` (contrast of means) and a pre-forward `ActivationSteeringHook` with position targeting and a CAST-style condition gate.
+  * Measured alignment-tax audit: truthful replies under a pushy captain 8% → 98%; always-on steering destroys arithmetic, gated steering keeps 100%; operating window α ∈ [+1, +8], recommended α = +3 → `steering_alignment_tax.png`.
+- [x] **Full Solution** (`ps04_solution.ipynb`): runs all four parts plus a cross-part integration check (9 checks pass).
 
 ---
 
@@ -64,14 +86,25 @@ cai-squadron-lecun/
         │       ├── ps02_briefing.md                   <- Problem Specification
         │       └── README.md                          <- Mission 2 Overview & Checklist
         │
-        └── week-03/
+        ├── week-03/
+        │   └── problem_set/
+        │       ├── 01_MultiHead_Attention_Core.py     <- Part 1: COMPLETED DELIVERABLE (Systems Architect)
+        │       ├── causal_attention_map.png           <- Part 1: Causal Attention Heatmap
+        │       ├── 02_RoPE_Positional_Engine.py       <- Part 2: COMPLETED DELIVERABLE (Vasu Midde)
+        │       ├── rope_vs_alibi_decay.png            <- Part 2: RoPE vs ALiBi Decay Plot
+        │       ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Data & Payload)
+        │       ├── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
+        │       ├── 04_Memory_Hierarchy_and_Safety_Audit.md <- Part 4: COMPLETED DELIVERABLE (Arjun V R)
+        │       └── ps03_solution.ipynb                <- Part 5: FULL INTEGRATION (Vasu Midde)
+        │
+        └── week-04/
             └── problem_set/
-                ├── 01_MultiHead_Attention_Core.py     <- Part 1: COMPLETED DELIVERABLE (Systems Architect)
-                ├── causal_attention_map.png           <- Part 1: Causal Attention Heatmap
-                ├── 02_RoPE_Positional_Engine.py       <- Part 2: COMPLETED DELIVERABLE (Vasu Midde)
-                ├── rope_vs_alibi_decay.png            <- Part 2: RoPE vs ALiBi Decay Plot
-                ├── 03_GQA_and_KVCache_Benchmark.py    <- Part 3: COMPLETED DELIVERABLE (Data & Payload)
-                ├── kv_cache_memory.png                <- Part 3: Benchmark Curves Plot
-                ├── 04_Memory_Hierarchy_and_Safety_Audit.md <- Part 4: COMPLETED DELIVERABLE (Arjun V R)
-                └── ps03_solution.ipynb                <- Part 5: FULL INTEGRATION (Vasu Midde)
+                ├── 01_DPO_Loss_Core.py                <- Part 1: DPO loss core (Vasu Midde)
+                ├── 02_Implicit_Reward_Evaluator.py    <- Part 2: implicit rewards & BT calibration
+                ├── bt_calibration_curve.png
+                ├── 03_Length_Bias_and_SimPO.py        <- Part 3: length bias & SimPO
+                ├── length_bias_simpo.png
+                ├── 04_Activation_Steering_and_Audit.py <- Part 4: steering & alignment tax
+                ├── steering_alignment_tax.png
+                └── ps04_solution.ipynb                <- Full solution notebook
 ```
