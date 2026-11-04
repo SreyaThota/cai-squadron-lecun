@@ -12,6 +12,20 @@
 | **Mission 02** | Sirius Binary System (`SEC-02-CMA`) | *Subsystem 02: Signal Entropy Decoders & Statistical Filters* (+7.1%) | ✅ **Completed & Submitted** | [`docs/weeks/week-02/problem_set/`](./docs/weeks/week-02/problem_set/) |
 | **Mission 03** | Pleiades Open Cluster (`SEC-03-M45`) | *Subsystem 03: Distributed Attention Mesh & KV-Cache Transceiver* (+7.1%) | ✅ **All 5 Parts Complete** | [`docs/weeks/week-03/problem_set/`](./docs/weeks/week-03/problem_set/) |
 | **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
+| **Mission 05** | Crab Pulsar Remnant / Messier 1 (`SEC-05-M01`) | *Subsystem 05: Dual-Path Associative Memory Core* (+7.1%) | 🟡 **In Progress (Part 1 done)** | [`docs/weeks/week-05/problem_set/`](./docs/weeks/week-05/problem_set/) |
+
+---
+
+## 🦀 Mission 05: Station Roles & Deliverables Status
+
+- [x] **Part 1: Systems Architect** (`01_HNSW_Vector_Index.py`)
+  * Pure Python/NumPy HNSW (Malkov & Yashunin, 2018): vectorised cosine core, layer law l = ⌊−ln U · mL⌋ with mL = 1/ln M (checked against P(l ≥ k) = M^−k), greedy `search_layer(entry_point, query, ef, layer)`, diversity neighbour heuristic.
+  * 4 unit tests pass (cosine vs loop, layer law, greedy hop, graph invariants + recall@10 = 1.000 on 2k vectors).
+  * Benchmark on N = 25,000 × 768-d embeddings: ef = 150 gives recall@10 = 0.970 in 1.66 ms while visiting 5.4% of the archive; flat brute force 3.28 ms. At recall ≥ 0.95, N × 25 → HNSW work × 3.8 (sub-linear) → `hnsw_benchmark.png`, `run_output.txt`.
+- [ ] **Part 2: Communications & Protocol Officer** (`02_BM25_and_RRF_Combiner.py`)
+- [ ] **Part 3: Data & Payload Specialist** (`03_NotebookLM_RAG_Audit.py`, `notebooklm_audit_report.md`)
+- [ ] **Part 4: Security & Ethics Sentinel** (`04_RAG_Provenance_and_Safety.py`)
+- [ ] **Squadron Notebook** (`ps05_solution.ipynb`)
 
 ---
 
