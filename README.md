@@ -3,6 +3,13 @@
 **Course Reference Repository:** [Unisvet/couse-c-ai](https://github.com/Unisvet/couse-c-ai)  
 **Squadron Branch:** `main` | **IDE & Tools Standard:** Visual Studio Code + Antigravity (`agy`) | PyTorch 2.4+
 
+| | |
+|---|---|
+| **What it is** | Team solutions for the M.Sc. course *Conversational AI* (BTU Cottbus-Senftenberg, winter 2026/27). The space-mission names come from the course format. |
+| **Topics implemented** | FST dialogue manager and noisy-channel simulator · multi-head attention, RoPE, GQA and KV-cache benchmarks · DPO and SimPO losses with length-bias analysis · activation steering · HNSW vector index from scratch |
+| **Stack** | Python · PyTorch · NumPy · Jupyter |
+| **Example result** | Pure-NumPy HNSW: recall@10 0.970 at 1.66 ms on 25,000 × 768-d vectors (brute force 3.28 ms) |
+
 ---
 
 ## 🛸 Starship Mission Directory & Log
