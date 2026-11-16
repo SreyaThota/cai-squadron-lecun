@@ -6,7 +6,7 @@
 | | |
 |---|---|
 | **What it is** | Team solutions for the M.Sc. course *Conversational AI* (BTU Cottbus-Senftenberg, winter 2026/27). The space-mission names come from the course format. |
-| **Topics implemented** | FST dialogue manager and noisy-channel simulator · multi-head attention, RoPE, GQA and KV-cache benchmarks · DPO and SimPO losses with length-bias analysis · activation steering · HNSW vector index from scratch · agent state machine with step budget, JSON-Schema tool calling and MDP return evaluation |
+| **Topics implemented** | FST dialogue manager and noisy-channel simulator · multi-head attention, RoPE, GQA and KV-cache benchmarks · DPO and SimPO losses with length-bias analysis · activation steering · HNSW vector index from scratch · agent state machine with step budget, JSON-Schema tool calling, MDP return evaluation and loop detection with an emergency tripwire |
 | **Stack** | Python · PyTorch · NumPy · Jupyter |
 | **Example result** | Pure-NumPy HNSW: recall@10 0.970 at 1.66 ms on 25,000 × 768-d vectors (brute force 3.28 ms) |
 
@@ -20,21 +20,21 @@
 | **Mission 03** | Pleiades Open Cluster (`SEC-03-M45`) | *Subsystem 03: Distributed Attention Mesh & KV-Cache Transceiver* (+7.1%) | ✅ **All 5 Parts Complete** | [`docs/weeks/week-03/problem_set/`](./docs/weeks/week-03/problem_set/) |
 | **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
 | **Mission 05** | Crab Pulsar Remnant / Messier 1 (`SEC-05-M01`) | *Subsystem 05: Dual-Path Associative Memory Core* (+7.1%) | 🟡 **In Progress (Part 1 done)** | [`docs/weeks/week-05/problem_set/`](./docs/weeks/week-05/problem_set/) |
-| **Mission 06** | Eta Carinae & Homunculus Nebula (`SEC-06-CAR`) | *Subsystem 06: Autonomous Warp State Machine & Deliberation Loop* (+7.1%) | 🟡 **In Progress (Parts 1–3 done)** | [`docs/weeks/week-06/problem_set/`](./docs/weeks/week-06/problem_set/) |
+| **Mission 06** | Eta Carinae & Homunculus Nebula (`SEC-06-CAR`) | *Subsystem 06: Autonomous Warp State Machine & Deliberation Loop* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-06/problem_set/`](./docs/weeks/week-06/problem_set/) |
 
 ---
 
 ## 🌌 Mission 06: Station Roles & Deliverables Status
 
-Integrated notebook: [`ps06_solution.ipynb`](./docs/weeks/week-06/problem_set/ps06_solution.ipynb) (pure Python standard library, runs top to bottom).
+All Mission 06 deliverables completed by **Squadron LeCun**. Integrated notebook: [`ps06_solution.ipynb`](./docs/weeks/week-06/problem_set/ps06_solution.ipynb) (pure Python standard library, runs top to bottom).
 
 - [x] **Part 1: Systems Architect** (`01_Agent_State_Machine.py`): `AgentState` enum, `@dataclass Agent`, strict transition graph, hard step budget N ≤ 20 (21 forced steps → `HALTED`).
 - [x] **Part 2: Communications & Protocol Officer** (`02_Tool_Protocol_Dispatcher.py`): 3 nebula tools, strict JSON-Schema validator, error boundary returning `Tool Execution Error: <msg>` into the agent context.
 - [x] **Part 3: Data & Payload Specialist** (`03_MDP_Trajectory_Logger.py`): trajectory logger τ, discounted return G₀ (γ = 0.95; `[10, 0, -5, 20]` → 22.635), empirical P(s′|s,a) from 95 historical jumps.
-- [ ] **Part 4: Security & Ethics Sentinel**: Floyd cycle detection, state-action hashing, emergency tripwire (in progress).
+- [x] **Part 4: Security & Ethics Sentinel**: Floyd cycle detection, state-action hashing, emergency tripwire.
 - Integration demo: AURA sends a bad shield command (−20 %), gets `Tool Execution Error: ValueError ...` back, corrects it to 80 % on the next cycle and reaches the escape corridor (`HALTED`, goal reached, 18 steps).
-- Master tests 1–3 pass; test 4 pending Part 4.
-- Run: `python 01_Agent_State_Machine.py` (same for 02, 03), or open the notebook and *Run All*.
+- Master tests 1–4 pass.
+- Run: `python 01_Agent_State_Machine.py` (same for 02, 03 and the Part 4 script), or open the notebook and *Run All*.
 
 ## 🦀 Mission 05: Station Roles & Deliverables Status
 
@@ -132,16 +132,28 @@ cai-squadron-lecun/
         │       ├── 04_Memory_Hierarchy_and_Safety_Audit.md <- Part 4: COMPLETED DELIVERABLE (Arjun V R)
         │       └── ps03_solution.ipynb                <- Part 5: FULL INTEGRATION
         │
-        └── week-04/
+        ├── week-04/
+        │   └── problem_set/
+        │       ├── 01_DPO_Loss_Core.py                <- Part 1: DPO loss core
+        │       ├── 02_Implicit_Reward_Evaluator.py    <- Part 2: implicit rewards & BT calibration
+        │       ├── bt_calibration_curve.png
+        │       ├── 03_Length_Bias_and_SimPO.py        <- Part 3: length bias & SimPO
+        │       ├── length_bias_simpo.png
+        │       ├── 04_Activation_Steering_and_Audit.py <- Part 4: steering & alignment tax
+        │       ├── steering_alignment_tax.png
+        │       ├── ps04_solution.ipynb                <- Full solution notebook
+        │       ├── mission-04-doc.md                  <- Squadron documentation (source)
+        │       └── mission-04-doc.pdf                 <- Squadron documentation (submit on portal + Moodle)
+        │
+        ├── week-05/
+        │   └── problem_set/
+        │       └── 01_HNSW_Vector_Index.py            <- Part 1: HNSW vector index (Parts 2-4 pending)
+        │
+        └── week-06/
             └── problem_set/
-                ├── 01_DPO_Loss_Core.py                <- Part 1: DPO loss core
-                ├── 02_Implicit_Reward_Evaluator.py    <- Part 2: implicit rewards & BT calibration
-                ├── bt_calibration_curve.png
-                ├── 03_Length_Bias_and_SimPO.py        <- Part 3: length bias & SimPO
-                ├── length_bias_simpo.png
-                ├── 04_Activation_Steering_and_Audit.py <- Part 4: steering & alignment tax
-                ├── steering_alignment_tax.png
-                ├── ps04_solution.ipynb                <- Full solution notebook
-                ├── mission-04-doc.md                  <- Squadron documentation (source)
-                └── mission-04-doc.pdf                 <- Squadron documentation (submit on portal + Moodle)
+                ├── 01_Agent_State_Machine.py          <- Part 1: agent state machine & step budget
+                ├── 02_Tool_Protocol_Dispatcher.py     <- Part 2: JSON-Schema tool calling & error boundary
+                ├── 03_MDP_Trajectory_Logger.py        <- Part 3: trajectory logger & discounted return
+                ├── 04_<part-4-script>.py              <- Part 4: cycle detection & tripwire (rename to the real filename)
+                └── ps06_solution.ipynb                <- Full integration notebook
 ```
