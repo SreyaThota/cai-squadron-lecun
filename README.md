@@ -6,7 +6,7 @@
 | | |
 |---|---|
 | **What it is** | Team solutions for the M.Sc. course *Conversational AI* (BTU Cottbus-Senftenberg, winter 2026/27). The space-mission names come from the course format. |
-| **Topics implemented** | FST dialogue manager and noisy-channel simulator · multi-head attention, RoPE, GQA and KV-cache benchmarks · DPO and SimPO losses with length-bias analysis · activation steering · HNSW vector index from scratch |
+| **Topics implemented** | FST dialogue manager and noisy-channel simulator · multi-head attention, RoPE, GQA and KV-cache benchmarks · DPO and SimPO losses with length-bias analysis · activation steering · HNSW vector index from scratch · agent state machine with step budget, JSON-Schema tool calling and MDP return evaluation |
 | **Stack** | Python · PyTorch · NumPy · Jupyter |
 | **Example result** | Pure-NumPy HNSW: recall@10 0.970 at 1.66 ms on 25,000 × 768-d vectors (brute force 3.28 ms) |
 
@@ -32,7 +32,9 @@ Integrated notebook: [`ps06_solution.ipynb`](./docs/weeks/week-06/problem_set/ps
 - [x] **Part 2: Communications & Protocol Officer** (`02_Tool_Protocol_Dispatcher.py`): 3 nebula tools, strict JSON-Schema validator, error boundary returning `Tool Execution Error: <msg>` into the agent context.
 - [x] **Part 3: Data & Payload Specialist** (`03_MDP_Trajectory_Logger.py`): trajectory logger τ, discounted return G₀ (γ = 0.95; `[10, 0, -5, 20]` → 22.635), empirical P(s′|s,a) from 95 historical jumps.
 - [ ] **Part 4: Security & Ethics Sentinel**: Floyd cycle detection, state-action hashing, emergency tripwire (in progress).
+- Integration demo: AURA sends a bad shield command (−20 %), gets `Tool Execution Error: ValueError ...` back, corrects it to 80 % on the next cycle and reaches the escape corridor (`HALTED`, goal reached, 18 steps).
 - Master tests 1–3 pass; test 4 pending Part 4.
+- Run: `python 01_Agent_State_Machine.py` (same for 02, 03), or open the notebook and *Run All*.
 
 ## 🦀 Mission 05: Station Roles & Deliverables Status
 
