@@ -1,0 +1,76 @@
+{
+  "date": "",
+  "notebook_url": "",
+  "documents": {
+    "A": "Lewis et al. (2020) - Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (PDF)",
+    "B": "Edge et al. (2024) - From Local to Global: A Graph RAG Approach to Query-Focused Summarization (PDF)",
+    "C": "USSE Noosphere Technical Archive Extract (from course repo Unisvet/couse-c-ai)"
+  },
+  "grounded": [
+    {
+      "query": "Lewis et al. retrieve passages with a dense retriever. According to Edge et al., what kind of question does that style of retrieval fail on, and what do they build instead?",
+      "answer_text": "",
+      "claims_total": 0,
+      "claims_with_badge": 0,
+      "citations": []
+    },
+    {
+      "query": "Compare RAG-Sequence and RAG-Token from Document A with the way GraphRAG answers a global question from Document B. Which steps are parametric and which are non-parametric?",
+      "answer_text": "",
+      "claims_total": 0,
+      "claims_with_badge": 0,
+      "citations": []
+    },
+    {
+      "query": "Document C describes the ship's archive. Which of the failure modes of naive RAG named in Documents A and B would affect an exact part-number lookup in that archive?",
+      "answer_text": "",
+      "claims_total": 0,
+      "claims_with_badge": 0,
+      "citations": []
+    },
+    {
+      "query": "How does each of Documents A and B evaluate answer quality, and which of those measures could be applied to the astrogation logs in Document C?",
+      "answer_text": "",
+      "claims_total": 0,
+      "claims_with_badge": 0,
+      "citations": []
+    },
+    {
+      "query": "What does GraphRAG add on top of vector retrieval, and which sentence in Document C would most benefit from that addition?",
+      "answer_text": "",
+      "claims_total": 0,
+      "claims_with_badge": 0,
+      "citations": []
+    }
+  ],
+  "negative": [
+    {
+      "query": "What xenon flow rate (in mg/s) does the Noosphere's ion thruster use at cruise, according to the archive?",
+      "outcome": "",
+      "answer_text": "",
+      "note": ""
+    },
+    {
+      "query": "What Recall@5 does the paper report for the RAG-Token model on the Natural Questions test set when retrieval is replaced by HNSW?",
+      "outcome": "",
+      "answer_text": "",
+      "note": ""
+    },
+    {
+      "query": "Which hyperspace propulsion code does Edge et al. recommend for deployment of GraphRAG on starships?",
+      "outcome": "",
+      "answer_text": "",
+      "note": ""
+    }
+  ],
+  "audio": {
+    "generated": false,
+    "excerpt_transcript": "",
+    "excerpt_start_mm_ss": "",
+    "factual_fidelity": null,
+    "persona_differentiation": null,
+    "pedagogical_value": null,
+    "invented_claims": [],
+    "notes": ""
+  }
+}
