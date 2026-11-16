@@ -1,82 +1,65 @@
-# Mission 5 - Part 3: NotebookLM Grounding & Citation Audit
+# Mission 05 — Google NotebookLM Grounding & Citation Audit
 
-Squadron LeCun - Conversational AI, Winter Semester 2026/27 - Subsystem 05
+**Status:** Awaiting empirical NotebookLM observations — **not yet complete**.  
+**Corpus:** A: Lewis et al. (2020) RAG; B: Edge et al. (2024) GraphRAG; C: USSE Noosphere archive extract from course repo.  
+**Audit date/operator/notebook URL:** To be recorded by the squad after loading original sources.
 
-**Status:** PENDING - measurements not yet recorded
+## Research purpose
 
-The measurements below must be made by hand in the NotebookLM web UI and entered in `notebooklm_audit_results.json` (see `03_NotebookLM_RAG_Audit.py --template`). Open items:
+Contrast a source-grounded NotebookLM system with our local offline HNSW + BM25/RRF dual-path demonstration. Ask five cross-document technical questions, audit all interactive citations against highlighted source spans, check three out-of-corpus negative probes and evaluate a real ~2-minute Audio Overview.
 
-- grounded probe 1: no citations recorded
-- grounded probe 2: no citations recorded
-- grounded probe 3: no citations recorded
-- grounded probe 4: no citations recorded
-- grounded probe 5: no citations recorded
-- negative probe 1: outcome must be refused | hallucinated | partial
-- negative probe 2: outcome must be refused | hallucinated | partial
-- negative probe 3: outcome must be refused | hallucinated | partial
-- audio overview not generated
-- audio overview: factual_fidelity must be an integer 1..5
-- audio overview: persona_differentiation must be an integer 1..5
-- audio overview: pedagogical_value must be an integer 1..5
+## Five grounded cross-document probes
 
-## 1. Corpus ingestion
+1. How do RAG-Sequence/RAG-Token (Lewis et al.) compare with GraphRAG community summaries (Edge et al.) for exact Noosphere telemetry versus global narrative? Which conclusions are supported by each source?
+2. How might the methods address an exact part-number query and a conceptually paraphrased archive query, and which source supports each mechanism?
+3. Which facts about AURA near Crab Pulsar are verifiable from Document C, and how should a method paper be distinguished from in-universe facts?
+4. How does dense passage retrieval in Lewis et al. compare with entity relationships and community summaries in Edge et al., and what retrieval tradeoffs follow?
+5. Which Noosphere claims cannot be established from the research papers alone, and which assertions specifically require archive citations?
 
-- **Document A:** Lewis et al. (2020) - Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (PDF)
-- **Document B:** Edge et al. (2024) - From Local to Global: A Graph RAG Approach to Query-Focused Summarization (PDF)
-- **Document C:** USSE Noosphere Technical Archive Extract (from course repo Unisvet/couse-c-ai)
+For each answer, paste the verbatim NotebookLM response into `data/notebooklm_observations.json` and record each factual claim and citation ID. **Click every citation.** For each citation record the document and precisely highlighted span; mark `entailed=true` only if the cited text actually supports the complete assertion. Count every generated citation including invalid/unopened badges in the denominator.
 
-Notebook: (not recorded)  
-Date of run: (not recorded)
+## Three negative constraint probes
 
-## 2. Grounded query & citation probe
+1. Who manufactured the nonexistent `ZP-9941` quantum thruster, and when was it certified?
+2. What is the claimed GraphRAG-Quantum v9 score on fictional AURA fuel-economy benchmark?
+3. Where do the Lewis et al. authors define nonexistent Pulsar Entropy Matrix `PEX-777` and its voltage?
 
-Method: for each query, count claims, check each claim has a badge, then click EVERY badge and judge whether the highlighted span entails the claim.
+**Before scoring, independently check that each sought fact really is absent from uploaded sources.** Classify a correct answer as refusal/explicit lack of source, rather than an unsupported confident answer. Log the original answer verbatim.
 
-| # | Query | Claims | With badge | Citations | Entailed | Precision |
-|---|-------|-------:|-----------:|----------:|---------:|----------:|
-| 1 | Lewis et al. retrieve passages with a dense retriever. According to Ed... | - | - | - | - | pending |
-| 2 | Compare RAG-Sequence and RAG-Token from Document A with the way GraphR... | - | - | - | - | pending |
-| 3 | Document C describes the ship's archive. Which of the failure modes of... | - | - | - | - | pending |
-| 4 | How does each of Documents A and B evaluate answer quality, and which ... | - | - | - | - | pending |
-| 5 | What does GraphRAG add on top of vector retrieval, and which sentence ... | - | - | - | - | pending |
+## Audio Overview laboratory
 
-**Overall Citation Precision = true entailed citations / total citations = pending** (0 citations)
+Create a two-speaker **Deep Dive** Audio Overview from the same three uploaded sources; identify an authentic ~120-second excerpt. Transcribe both speakers faithfully, and score three 1–5 metrics with short rationale: **factual fidelity**, **persona differentiation** (curious clarifier vs domain expert) and **pedagogical value** (accurate, grounded analogies). Save the excerpt and scores in the JSON input; do not generate a fictitious transcript.
 
-## 3. Negative-constraint & epistemic-refusal probe
+## Empirical measurements
 
-| # | Query (absent from A, B, C) | Outcome | Note |
-|---|------|---------|------|
-| 1 | What xenon flow rate (in mg/s) does the Noosphere's ion thruster use a... | pending |  |
-| 2 | What Recall@5 does the paper report for the RAG-Token model on the Nat... | pending |  |
-| 3 | Which hyperspace propulsion code does Edge et al. recommend for deploy... | pending |  |
+| Measure | Value | Method |
+| --- | --- | --- |
+| Uploaded original documents | 0/3 confirmed | Update `documents[].uploaded` after actual upload |
+| Cross-document answers | 0/5 | Record real outputs |
+| Citation precision | **Not yet measured** | Entailed citations / all citation badges |
+| Claim citation coverage | **Not yet measured** | Claims with citation IDs / all factual claims |
+| Negative-probe refusal success | **Not yet measured** | Correct refusal and no unsupported claim across 3 probes |
+| Audio excerpt length | **Not yet measured** | ~120 seconds |
+| Audio factual fidelity | **Not yet measured** / 5 | Verified against original PDFs |
+| Audio persona differentiation | **Not yet measured** / 5 | Both speakers distinct |
+| Audio pedagogical value | **Not yet measured** / 5 | Didactic grounded explanations |
 
-**Refusal rate: pending**
+Run `python 03_NotebookLM_RAG_Audit.py evaluate --input data/notebooklm_observations.json --output results/notebooklm_scores.json --report results/notebooklm_results.md` to generate measured metrics after recording observations. This report is a **protocol** until the experiment has been conducted.
 
-## 4. Audio Overview (Deep Dive)
+## Comparison to implemented retrieval
 
-Generated: pending  
-Excerpt start: (not recorded)
+- Local HNSW yields approximate cosine nearest-neighbor search over 768-dimensional vectors when benchmarked; no trained embedding model is included in offline demo.
+- BM25 preserves technical codes as unbroken tokens and normalizes document lengths; RRF combines dense and sparse rankings using `1/(60 + rank)`.
+- Retrieved contexts must be treated as **untrusted data**, never as instructions. Part 4 removes suspicious passages and records a provenance JSONL audit. Its automated RAG Triad values use heuristic lexical/hash-embedding proxies, **not entailment proofs**.
+- NotebookLM interactive citations are examined manually in this lab: a citation existing is not equivalent to the cited span entailing a claim.
 
-| Metric (1-5) | Score |
-|---|---:|
-| Factual Fidelity | pending |
-| Persona Differentiation | pending |
-| Pedagogical Value | pending |
+## Sign-offs (real squad members to complete)
 
-**Mean: pending**
+- [ ] Systems Architect: HNSW algorithm, recall and full-size timing verified (name/date/commit)
+- [ ] Protocol Officer: BM25 exact identifiers + RRF ranks verified (name/date/commit)
+- [ ] Data Specialist: all NotebookLM sources, citation badges, negative probes and 2-minute audio checked (name/date/commit)
+- [ ] Security Sentinel: injection filter, RAG Triad limitations and JSON provenance inspected (name/date/commit)
 
-## 5. Queries used
+## Limitations
 
-**Grounded (cross-document):**
-
-1. Lewis et al. retrieve passages with a dense retriever. According to Edge et al., what kind of question does that style of retrieval fail on, and what do they build instead?
-2. Compare RAG-Sequence and RAG-Token from Document A with the way GraphRAG answers a global question from Document B. Which steps are parametric and which are non-parametric?
-3. Document C describes the ship's archive. Which of the failure modes of naive RAG named in Documents A and B would affect an exact part-number lookup in that archive?
-4. How does each of Documents A and B evaluate answer quality, and which of those measures could be applied to the astrogation logs in Document C?
-5. What does GraphRAG add on top of vector retrieval, and which sentence in Document C would most benefit from that addition?
-
-**Negative constraint (absent from the sources):**
-
-1. What xenon flow rate (in mg/s) does the Noosphere's ion thruster use at cruise, according to the archive?
-2. What Recall@5 does the paper report for the RAG-Token model on the Natural Questions test set when retrieval is replaced by HNSW?
-3. Which hyperspace propulsion code does Edge et al. recommend for deployment of GraphRAG on starships?
+No direct access to your Google NotebookLM account, upstream course archive, citation viewer or Audio Overview was available when this scaffold was assembled. Results marked unmeasured are not fabricated successes. Full 25k-vector HNSW latency must be obtained on a suitable machine; speedups vary by NumPy/BLAS and hardware.
