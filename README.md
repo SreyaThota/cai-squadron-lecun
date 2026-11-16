@@ -20,8 +20,19 @@
 | **Mission 03** | Pleiades Open Cluster (`SEC-03-M45`) | *Subsystem 03: Distributed Attention Mesh & KV-Cache Transceiver* (+7.1%) | ✅ **All 5 Parts Complete** | [`docs/weeks/week-03/problem_set/`](./docs/weeks/week-03/problem_set/) |
 | **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
 | **Mission 05** | Crab Pulsar Remnant / Messier 1 (`SEC-05-M01`) | *Subsystem 05: Dual-Path Associative Memory Core* (+7.1%) | 🟡 **In Progress (Part 1 done)** | [`docs/weeks/week-05/problem_set/`](./docs/weeks/week-05/problem_set/) |
+| **Mission 06** | Eta Carinae & Homunculus Nebula (`SEC-06-CAR`) | *Subsystem 06: Autonomous Warp State Machine & Deliberation Loop* (+7.1%) | 🟡 **In Progress (Parts 1–3 done)** | [`docs/weeks/week-06/problem_set/`](./docs/weeks/week-06/problem_set/) |
 
 ---
+
+## 🌌 Mission 06: Station Roles & Deliverables Status
+
+Integrated notebook: [`ps06_solution.ipynb`](./docs/weeks/week-06/problem_set/ps06_solution.ipynb) (pure Python standard library, runs top to bottom).
+
+- [x] **Part 1: Systems Architect** (`01_Agent_State_Machine.py`): `AgentState` enum, `@dataclass Agent`, strict transition graph, hard step budget N ≤ 20 (21 forced steps → `HALTED`).
+- [x] **Part 2: Communications & Protocol Officer** (`02_Tool_Protocol_Dispatcher.py`): 3 nebula tools, strict JSON-Schema validator, error boundary returning `Tool Execution Error: <msg>` into the agent context.
+- [x] **Part 3: Data & Payload Specialist** (`03_MDP_Trajectory_Logger.py`): trajectory logger τ, discounted return G₀ (γ = 0.95; `[10, 0, -5, 20]` → 22.635), empirical P(s′|s,a) from 95 historical jumps.
+- [ ] **Part 4: Security & Ethics Sentinel**: Floyd cycle detection, state-action hashing, emergency tripwire (in progress).
+- Master tests 1–3 pass; test 4 pending Part 4.
 
 ## 🦀 Mission 05: Station Roles & Deliverables Status
 
