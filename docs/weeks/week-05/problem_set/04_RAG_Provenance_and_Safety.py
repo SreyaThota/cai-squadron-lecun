@@ -28,7 +28,14 @@ def _load_embedder():
         raise ImportError(f"Could not load {path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.HashingEmbedder, module.tokenize
+    # Part 2 exposes a deterministic `embed(text)` function, not a
+    # HashingEmbedder class. Adapt its function to the callable interface
+    # required by the safety detector and RAG Triad scorer.
+    class HashingEmbedder:
+        def __call__(self, text: str) -> np.ndarray:
+            return np.asarray(module.embed(text), dtype=np.float32)
+
+    return HashingEmbedder, module.tokenize
 
 
 HashingEmbedder, tokenize = _load_embedder()
