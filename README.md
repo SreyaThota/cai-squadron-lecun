@@ -42,10 +42,10 @@ All Mission 06 deliverables completed by **Squadron LeCun**. Integrated notebook
   * Pure Python/NumPy HNSW (Malkov & Yashunin, 2018): vectorised cosine core, layer law l = ⌊−ln U · mL⌋ with mL = 1/ln M (checked against P(l ≥ k) = M^−k), greedy `search_layer(entry_point, query, ef, layer)`, diversity neighbour heuristic.
   * 4 unit tests pass (cosine vs loop, layer law, greedy hop, graph invariants + recall@10 = 1.000 on 2k vectors).
   * Benchmark on N = 25,000 × 768-d embeddings: ef = 150 gives recall@10 = 0.970 in 1.66 ms while visiting 5.4% of the archive; flat brute force 3.28 ms. At recall ≥ 0.95, N × 25 → HNSW work × 3.8 (sub-linear) → `hnsw_benchmark.png`, `run_output.txt`.
-- [ ] **Part 2: Communications & Protocol Officer** (`02_BM25_and_RRF_Combiner.py`)
-- [ ] **Part 3: Data & Payload Specialist** (`03_NotebookLM_RAG_Audit.py`, `notebooklm_audit_report.md`)
-- [ ] **Part 4: Security & Ethics Sentinel** (`04_RAG_Provenance_and_Safety.py`)
-- [ ] **Squadron Notebook** (`ps05_solution.ipynb`)
+- [x] **Part 2: Communications & Protocol Officer** (`02_BM25_and_RRF_Combiner.py`)
+- [x] **Part 3: Data & Payload Specialist** (`03_NotebookLM_RAG_Audit.py`, `notebooklm_audit_report.md`)
+- [x] **Part 4: Security & Ethics Sentinel** (`04_RAG_Provenance_and_Safety.py`)
+- [x] **Squadron Notebook** (`ps05_solution.ipynb`)
 
 ---
 
