@@ -43,7 +43,7 @@ All Mission 06 deliverables completed by **Squadron LeCun**. Integrated notebook
   * 4 unit tests pass (cosine vs loop, layer law, greedy hop, graph invariants + recall@10 = 1.000 on 2k vectors).
   * Benchmark on N = 25,000 × 768-d embeddings: ef = 150 gives recall@10 = 0.970 in 1.66 ms while visiting 5.4% of the archive; flat brute force 3.28 ms. At recall ≥ 0.95, N × 25 → HNSW work × 3.8 (sub-linear) → `hnsw_benchmark.png`, `run_output.txt`.
 - [x] **Part 2: Communications & Protocol Officer** (`02_BM25_and_RRF_Combiner.py`)
-- [x] **Part 3: Data & Payload Specialist** (`03_NotebookLM_RAG_Audit.py`, `notebooklm_audit_report.md`)
+- [x] **Part 3: Data & Payload Specialist** (`03_NotebookLM_RAG_Audit.py`, `notebooklm_audit_report.md`, `notebooklm_audit_results.json`, `audit_log.json`)
 - [x] **Part 4: Security & Ethics Sentinel** (`04_RAG_Provenance_and_Safety.py`)
 - [x] **Squadron Notebook** (`ps05_solution.ipynb`)
 
@@ -147,7 +147,16 @@ cai-squadron-lecun/
         │
         ├── week-05/
         │   └── problem_set/
-        │       └── 01_HNSW_Vector_Index.py            <- Part 1: HNSW vector index (Parts 2-4 pending)
+        │       ├── 01_HNSW_Vector_Index.py            <- Part 1: HNSW vector index
+        │       ├── hnsw_benchmark.png                 <- Part 1: benchmark plot
+        │       ├── run_output.txt                     <- Part 1: benchmark run output
+        │       ├── 02_BM25_and_RRF_Combiner.py        <- Part 2: BM25 & RRF hybrid retrieval
+        │       ├── 03_NotebookLM_RAG_Audit.py         <- Part 3: RAG audit harness
+        │       ├── notebooklm_audit_report.md         <- Part 3: audit report
+        │       ├── notebooklm_audit_results.json      <- Part 3: audit results
+        │       ├── audit_log.json                     <- Part 3: audit log
+        │       ├── 04_RAG_Provenance_and_Safety.py    <- Part 4: provenance & safety
+        │       └── ps05_solution.ipynb                <- Full integration notebook
         │
         └── week-06/
             └── problem_set/
