@@ -1,138 +1,207 @@
 """
-Mission 07 — Part 2: Communications & Protocol Officer
-4-Phase Monte Carlo Tree Search (MCTS) & PUCT Selection Engine
+mcts_protocol.py
+Mission 07 / Part 2: 4-Phase Monte Carlo Tree Search with PUCT selection.
 
-Starship Operational Unit: USSE Noosphere Bridge Crew
-Sector: SEC-07-SGR (Sagittarius A* Supermassive Black Hole)
-Subsystem 07: Gravitational Search Horizon & Process Reward Evaluator
+Pure Python 3.11+, standard library only.
+
+PUCT(s, a) = Q(s, a) + c_puct * P(a | s) * sqrt(N(s)) / (1 + N(s, a))
+  Q(s, a)  = W(s, a) / N(s, a) if N(s, a) > 0 else 0.0
+  N(s)     = max(1, parent.visit_count)
 """
+
+from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 
+# ---------------------------------------------------------------------------
+# Node
+# ---------------------------------------------------------------------------
 @dataclass
 class MCTSNode:
-    """Represents a node in the Monte Carlo Reasoning Tree."""
+    """A node in the MCTS search tree."""
+
     state: str
-    prior_prob: float = 1.0
+    prior: float = 1.0                      # P_theta(a | s) from the LLM policy
     parent: Optional["MCTSNode"] = None
     children: List["MCTSNode"] = field(default_factory=list)
-    visit_count: int = 0
-    value_sum: float = 0.0
+    visit_count: int = 0                    # N(s, a)
+    value_sum: float = 0.0                  # W(s, a)
     is_terminal: bool = False
+    is_expanded: bool = False
 
     @property
     def q_value(self) -> float:
-        """Empirical mean action-value Q(s, a) = W(s, a) / N(s, a)."""
-        if self.visit_count == 0:
-            return 0.0
-        return self.value_sum / self.visit_count
+        """Mean value Q = W / N, or 0.0 for an unvisited node."""
+        if self.visit_count > 0:
+            return self.value_sum / self.visit_count
+        return 0.0
+
+    def is_leaf(self) -> bool:
+        """True if the node has no children yet (unexpanded) or is terminal."""
+        return self.is_terminal or not self.children
+
+    def get_trajectory(self) -> List[str]:
+        """Reasoning chain of states from the root to this node."""
+        path: List[str] = []
+        node: Optional[MCTSNode] = self
+        while node is not None:
+            path.append(node.state)
+            node = node.parent
+        return list(reversed(path))
+
+    def __repr__(self) -> str:
+        return (f"MCTSNode(state={self.state!r}, N={self.visit_count}, "
+                f"Q={self.q_value:.3f}, P={self.prior:.3f})")
 
 
+# ---------------------------------------------------------------------------
+# Engine
+# ---------------------------------------------------------------------------
 class MCTSEngine:
-    """
-    Implements the 4 canonical phases of Monte Carlo Tree Search (MCTS) for LLM reasoning:
-    1. Selection (via Predictor + Upper Confidence Bound applied to Trees, PUCT)
-    2. Expansion (attaching candidate reasoning steps with LLM policy priors P(a|s))
-    3. Simulation / Rollout (estimating value via PRM or trajectory completion)
-    4. Backpropagation (updating N(s,a) and W(s,a) along the ancestor path)
-    """
+    """4-phase MCTS (select, expand, simulate, backpropagate) with PUCT."""
 
-    def __init__(self, c_puct: float = 1.5):
+    def __init__(self, c_puct: float = 1.414):
         self.c_puct = c_puct
 
-    def puct_score(self, parent: MCTSNode, child: MCTSNode) -> float:
-        """
-        TODO (Protocol Officer): Compute the exact PUCT score for `child` under `parent`:
-            PUCT(s, a) = Q(s, a) + c_puct * P(a | s) * sqrt(max(1, N(s))) / (1 + N(s, a))
-        """
-        parent_visits = max(1, parent.visit_count)
-        u_value = self.c_puct * child.prior_prob * (math.sqrt(parent_visits) / (1 + child.visit_count))
-        return child.q_value + u_value
+    # ---- PUCT --------------------------------------------------------------
+    def puct_score(self, node: MCTSNode, parent: Optional[MCTSNode] = None) -> float:
+        """Exact PUCT formula for the edge (parent -> node)."""
+        parent = parent if parent is not None else node.parent
+        parent_visits = parent.visit_count if parent is not None else 0
+        n_s = max(1, parent_visits)
+        q = node.value_sum / node.visit_count if node.visit_count > 0 else 0.0
+        exploration = self.c_puct * node.prior * math.sqrt(n_s) / (1 + node.visit_count)
+        return q + exploration
 
     def select_best_child(self, node: MCTSNode) -> MCTSNode:
-        """
-        TODO (Protocol Officer): Return the child of `node` that maximizes `self.puct_score(node, child)`.
-        """
+        """Child with the highest PUCT score (first one wins ties)."""
         if not node.children:
-            raise ValueError("Cannot select a child from a leaf node with no children.")
-        return max(node.children, key=lambda child: self.puct_score(node, child))
+            raise ValueError("select_best_child called on a node without children")
+        best_child = node.children[0]
+        best_score = self.puct_score(best_child, node)
+        for child in node.children[1:]:
+            score = self.puct_score(child, node)
+            if score > best_score:
+                best_child, best_score = child, score
+        return best_child
 
+    # ---- Phase 1: Selection ------------------------------------------------
     def select_leaf(self, root: MCTSNode) -> MCTSNode:
-        """
-        Phase 1 (Selection): Traverse down the tree from `root` using `select_best_child`
-        until reaching a leaf node (no children or terminal).
-        """
-        curr = root
-        while curr.children and not curr.is_terminal:
-            curr = self.select_best_child(curr)
-        return curr
+        """Greedily descend via PUCT until an unexpanded or terminal leaf."""
+        node = root
+        while node.children and not node.is_terminal:
+            node = self.select_best_child(node)
+        return node
 
-    def expand(self, node: MCTSNode, action_priors: Dict[str, float]) -> List[MCTSNode]:
-        """
-        TODO (Protocol Officer) — Phase 2 (Expansion):
-        Instantiate and attach child `MCTSNode` objects for each `(state_str, prior_prob)` in `action_priors`.
-        """
-        for state_str, prior_prob in action_priors.items():
-            child = MCTSNode(state=state_str, prior_prob=prior_prob, parent=node)
+    # ---- Phase 2: Expansion ------------------------------------------------
+    def expand(
+        self,
+        node: MCTSNode,
+        candidate_priors: List[Tuple[str, float]],
+    ) -> List[MCTSNode]:
+        """Create one child per (thought_state, prior_prob) pair."""
+        if node.is_terminal:
+            return []
+        new_children: List[MCTSNode] = []
+        for thought_state, prior_prob in candidate_priors:
+            child = MCTSNode(state=thought_state, prior=prior_prob, parent=node)
             node.children.append(child)
-        return node.children
+            new_children.append(child)
+        node.is_expanded = True
+        return new_children
 
-    def simulate_rollout(self, node: MCTSNode, rollout_evaluator: Callable[[str], float]) -> float:
-        """
-        TODO (Protocol Officer) — Phase 3 (Simulation / Rollout):
-        Evaluate `node.state` using `rollout_evaluator` and clamp the scalar reward to [0.0, 1.0].
-        """
-        reward = float(rollout_evaluator(node.state))
-        return max(0.0, min(1.0, reward))
+    # ---- Phase 3: Simulation / Evaluation ---------------------------------
+    def simulate_rollout(
+        self,
+        node: MCTSNode,
+        rollout_evaluator: Callable[[MCTSNode], float],
+    ) -> float:
+        """Evaluate a node via rollout or PRM value estimate, clamped to [0, 1]."""
+        value = float(rollout_evaluator(node))
+        return max(0.0, min(1.0, value))
 
+    # ---- Phase 4: Backpropagation -----------------------------------------
     def backpropagate(self, node: MCTSNode, reward: float) -> None:
-        """
-        TODO (Protocol Officer) — Phase 4 (Backpropagation):
-        Traverse from `node` up to the root (`curr = curr.parent`), incrementing `visit_count += 1`
-        and adding `reward` to `value_sum` for every node along the path.
-        """
-        curr: Optional[MCTSNode] = node
-        while curr is not None:
-            curr.visit_count += 1
-            curr.value_sum += reward
-            curr = curr.parent
+        """Walk to the root: visit_count += 1, value_sum += reward at every ancestor."""
+        current: Optional[MCTSNode] = node
+        while current is not None:
+            current.visit_count += 1
+            current.value_sum += reward
+            current = current.parent
+
+    # ---- Full search loop --------------------------------------------------
+    def search(
+        self,
+        root: MCTSNode,
+        candidate_generator: Callable[[MCTSNode], List[Tuple[str, float]]],
+        rollout_evaluator: Callable[[MCTSNode], float],
+        num_simulations: int = 50,
+    ) -> MCTSNode:
+        """Run MCTS; return the most-visited child of the root (or root if none)."""
+        for _ in range(num_simulations):
+            leaf = self.select_leaf(root)
+            if not leaf.is_terminal and not leaf.is_expanded:
+                priors = candidate_generator(leaf)
+                if priors:
+                    children = self.expand(leaf, priors)
+                    # evaluate the first new child (or leaf if nothing was added)
+                    target = children[0] if children else leaf
+                else:
+                    leaf.is_terminal = True
+                    target = leaf
+            else:
+                target = leaf
+            reward = self.simulate_rollout(target, rollout_evaluator)
+            self.backpropagate(target, reward)
+
+        if not root.children:
+            return root
+        return max(root.children, key=lambda c: c.visit_count)
 
 
-# ==============================================================================
-# Verification Harness for Part 2 (Communications & Protocol Officer)
-# ==============================================================================
+# ---------------------------------------------------------------------------
+# Self-test
+# ---------------------------------------------------------------------------
+def _self_test() -> None:
+    engine = MCTSEngine(c_puct=1.0)
+
+    # PUCT formula check: parent N=4, child N=1, W=0.5, P=0.4
+    parent = MCTSNode("root", visit_count=4)
+    child = MCTSNode("a", prior=0.4, parent=parent, visit_count=1, value_sum=0.5)
+    parent.children.append(child)
+    expected = 0.5 + 1.0 * 0.4 * math.sqrt(4) / (1 + 1)
+    assert abs(engine.puct_score(child) - expected) < 1e-12
+
+    # Unvisited child: Q = 0, N(s) floors at 1
+    fresh_parent = MCTSNode("p", visit_count=0)
+    fresh = MCTSNode("x", prior=0.5, parent=fresh_parent)
+    assert abs(engine.puct_score(fresh) - 0.5) < 1e-12
+
+    # Backpropagation
+    root = MCTSNode("root")
+    a = MCTSNode("a", parent=root)
+    b = MCTSNode("b", parent=a)
+    engine.backpropagate(b, 0.8)
+    assert (root.visit_count, a.visit_count, b.visit_count) == (1, 1, 1)
+    assert abs(root.value_sum - 0.8) < 1e-12
+
+    # Full search: "good" branch should win
+    def gen(n: MCTSNode):
+        if n.parent is None:
+            return [("good", 0.5), ("bad", 0.5)]
+        return []
+
+    def rollout(n: MCTSNode) -> float:
+        return 0.9 if n.state == "good" else 0.1
+
+    root = MCTSNode("root")
+    best = engine.search(root, gen, rollout, num_simulations=30)
+    assert best.state == "good", best
+    print("mcts_protocol.py self-test passed:", best)
+
+
 if __name__ == "__main__":
-    print("=== Subsystem 07 (Part 2): MCTS & PUCT Protocol Verification ===")
-
-    engine = MCTSEngine(c_puct=1.5)
-    root = MCTSNode(state="Root: Sagittarius A* Ergosphere Geodesic Entry", visit_count=16)
-
-    branch_a = MCTSNode(state="Branch A: Prograde Frame-Dragging Assist", prior_prob=0.50, parent=root)
-    branch_a.visit_count = 5
-    branch_a.value_sum = 0.75 * 5  # Q(s, A) = 0.75
-
-    branch_b = MCTSNode(state="Branch B: Retrograde Penrose Extraction", prior_prob=0.40, parent=root)
-    branch_b.visit_count = 1
-    branch_b.value_sum = 0.55 * 1  # Q(s, B) = 0.55
-
-    root.children = [branch_a, branch_b]
-
-    puct_a = engine.puct_score(root, branch_a)
-    puct_b = engine.puct_score(root, branch_b)
-    selected = engine.select_best_child(root)
-
-    print(f"Branch A -> Q={branch_a.q_value:.2f}, N={branch_a.visit_count}, P={branch_a.prior_prob:.2f} | PUCT = {puct_a:.4f}")
-    print(f"Branch B -> Q={branch_b.q_value:.2f}, N={branch_b.visit_count}, P={branch_b.prior_prob:.2f} | PUCT = {puct_b:.4f}")
-    print(f"Selected Next Node for Expansion: {selected.state}")
-
-    assert abs(puct_a - 1.25) < 1e-6, f"Expected PUCT(A)=1.25, got {puct_a}"
-    assert abs(puct_b - 1.75) < 1e-6, f"Expected PUCT(B)=1.75, got {puct_b}"
-    assert selected is branch_b, "MCTS failed to select under-explored high-PUCT Branch B!"
-
-    # Test Backpropagation
-    engine.backpropagate(branch_b, reward=0.95)
-    assert branch_b.visit_count == 2 and root.visit_count == 17, "Backpropagation failed to increment visit counts!"
-    print("[OK] Part 2 (Communications & Protocol Officer) verification passed.")
+    _self_test()
