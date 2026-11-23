@@ -30,9 +30,9 @@
 | Part | Station Role | Owner | Deliverable | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | 1 | Systems Architect | Sreya Thota | `tot_solver.py` | ✅ Done (harness + rule checks + Game-of-24 benchmark pass) |
-| 2 | Communications & Protocol Officer | TBD | `mcts_protocol.py` | ⏳ Open |
-| 3 | Data & Payload Specialist | TBD | `prm_evaluator.py` | ⏳ Open |
-| 4 | Security & Ethics Sentinel | TBD | `horizon_pruner.py` | ⏳ Open |
+| 2 | Communications & Protocol Officer | Arjun V R | `mcts_protocol.py` | ✅ Pushed (harness passes) |
+| 3 | Data & Payload Specialist | TBD | `prm_evaluator.py` | ✅ Done (harness + ORM trap + Math-Shepherd study pass) |
+| 4 | Security & Ethics Sentinel | TBD | `horizon_pruner.py` | ✅ Done (harness + red-team suite + dilution defense pass) |
 | 5 | All 4 officers | Squadron LeCun | `mission-07-doc.md` → `mission-07-doc.pdf` | ⏳ Open |
 
 ## 🌌 Mission 06: Station Roles & Deliverables Status

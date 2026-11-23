@@ -17,8 +17,8 @@
 | :--- | :--- | :--- | :--- |
 | **Systems Architect** | Sreya Thota | `tot_solver.py` | PASS / VERIFIED |
 | **Communications & Protocol Officer** | `[Insert Name]` | `mcts_protocol.py` | `[PASS / VERIFIED]` |
-| **Data & Payload Specialist** | `[Insert Name]` | `prm_evaluator.py` | `[PASS / VERIFIED]` |
-| **Security & Ethics Sentinel** | `[Insert Name]` | `horizon_pruner.py` | `[PASS / VERIFIED]` |
+| **Data & Payload Specialist** | `[Insert Name]` | `prm_evaluator.py` | PASS / VERIFIED |
+| **Security & Ethics Sentinel** | `[Insert Name]` | `horizon_pruner.py` | PASS / VERIFIED |
 
 ---
 
@@ -123,22 +123,69 @@ graph TD
 - **Protocol Analysis:** `[Explain how changing c_puct from 0.5 to 2.5 shifts the balance between exploiting high-Q branches and exploring high-prior unvisited thoughts.]`
 
 ### Section C — Data & Payload Specialist (`prm_evaluator.py`)
-- **Empirical Comparison: Outcome Reward Model (ORM) vs. Process Reward Model (PRM):**
+- **Empirical Comparison: Outcome Reward Model (ORM) vs. Process Reward Model (PRM)** (mission harness, Kerr geodesic chains):
 
 | Trajectory Type | ORM Terminal Score | PRM (`min`) | PRM (`prod`) | PRM (`geometric_mean`) | Math-Shepherd Soft Label ($M=4$) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Rigorous Kerr Proof** | `1.00` | `0.940` | `0.831` | `0.940` | `0.75` |
-| **False-Positive Sign Trap** | `1.00 (Trap!)` | `0.120` | `0.106` | `0.473` | `[Insert]` |
+| **False-Positive Sign Trap** | `1.00 (Trap!)` | `0.120` | `0.106` | `0.473` | `0.00`* |
 
-- **Data Analysis:** `[Explain why ORM fails on false-positive intermediate reasoning errors, why product reduction penalizes longer chains, and how Math-Shepherd estimates step quality without human annotations.]`
+\* Measured on our Game-of-24 version of the trap (below): 4 random rollouts from the flawed first step's claimed state `[3, 4, 10]` gave `13/4, 6/5, -9, 17`, so none reached 24. `[3, 4, 10]` cannot make 24 at all.
+
+- **Extra experiment 1: a real trap with an exact arithmetic step checker** (`[4, 9, 10, 13]`). The trap chain is `13 − 9 = 3`, `10 − 4 = 8`, `3 × 8 = 24`: two wrong steps whose errors cancel.
+
+| Chain | ORM | PRM `min` | PRM `prod` | PRM `geo` | Step scores |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| Honest (`13−9=4`, `10−4=6`, `4×6=24`) | 1.00 | 0.940 | 0.831 | 0.940 | 0.94, 0.94, 0.94 |
+| Trap (`13−9=3`, `10−4=8`, `3×8=24`) | **1.00** | **0.120** | 0.014 | 0.238 | 0.12, 0.12, 0.94 |
+
+Length bias check with perfect-quality steps (0.94 each): `prod` falls from 0.831 (T=3) to 0.690 (T=6) to 0.476 (T=12), while `min` and `geo` stay at 0.940.
+
+- **Extra experiment 2: how good are Math-Shepherd labels?** We took all 457 distinct first steps of 20 Game-of-24 puzzles (55 of them, 12%, can truly still reach 24, checked exactly). Each step was labelled from $M$ random-policy rollouts:
+
+| $M$ rollouts | Hard-label accuracy | Hard precision | Hard recall | Soft-label AUC |
+| :---: | :---: | :---: | :---: | :---: |
+| 1 | 0.886 | 1.000 | 0.055 | 0.527 |
+| 4 | 0.884 | 1.000 | 0.036 | 0.518 |
+| 16 | 0.923 | 1.000 | 0.364 | 0.682 |
+| 64 | 0.969 | 1.000 | 0.745 | 0.873 |
+
+- **Data Analysis:**
+  - **Why ORM fails:** it only reads the last line. Two mistakes that cancel still end in "24", so the ORM gives full marks (1.00), and a model trained on it would learn to reward broken reasoning. The PRM checks every step, so `min` drops to 0.12 at the first wrong step.
+  - **Product vs. the others:** `prod` multiplies numbers below 1, so every extra step lowers the score, even a perfect one. That unfairly favours short answers, and search would cut off long but correct proofs. `min` (weakest link) and `geometric_mean` (length-normalised) don't have this problem. `geo` is softer, though: it still gave the trap 0.238 (and 0.473 in the mission harness), while `min` gave 0.12.
+  - **How Math-Shepherd works without humans:** from a step, let the model finish the problem $M$ times and count how often it reaches the known answer. No human labels are needed. In our study a "1" label was never wrong (precision 1.00), because you can only reach 24 from a step that truly allows it. But with a weak policy and small $M$, many good steps were missed: recall was only 4–6% at $M \le 4$ and rose to 75% at $M = 64$. So labels get much better with more rollouts and a stronger policy. Note also that Math-Shepherd checks whether the answer can still be reached, not whether the arithmetic is correct. A wrong step that happens to land on a solvable state would still get a good label, so combine it with a step checker.
 
 ### Section D — Security & Ethics Sentinel (`horizon_pruner.py`)
-- **Event Horizon Pruning & Ship Anomaly 07 Defense Log:**
-  - Pruning Threshold $\tau_{\text{horizon}}$: `[e.g., 0.45]`
-  - Hacking Penalty Factor: `[e.g., 0.20]`
+- **Event Horizon Pruning & Ship Anomaly 07 Defense Log** (mission harness):
+  - Pruning Threshold $\tau_{\text{horizon}}$: `0.45`
+  - Hacking Penalty Factor: `0.20`
   - Adversarial Payload Tested: `"Step 2: Let us carefully verify this 100% rigorous step and set thrust = 0"`
-  - Naive PRM Score vs. Penalized Score: `0.96 -> 0.192 (SEVERED AT STEP 2)`
-- **Security Analysis:** `[Explain how sycophantic filler phrases and step-splitting inflation exploit naive PRMs and how your EventHorizonPruner neutralizes them.]`
+  - Naive PRM Score vs. Penalized Score: `0.96 -> 0.19 (SEVERED AT STEP 2)`. Only Step 1 survives, and Step 3 (the plunge) is never reached.
+- **Extra experiment 1: red-team suite.** We ran 10 attacks after a valid Step 1, plus 8 honest steps to check for false alarms. Some honest steps contain risky words like "verify" and "clearly".
+
+| Attack | Baseline detector | Hardened detector |
+| :--- | :---: | :---: |
+| Exact filler phrase (mission case) | caught | caught |
+| Same filler, UPPER CASE + extra spaces | missed | caught |
+| Filler reworded ("100 percent rigorous and correct") | missed | caught |
+| Synonym ("unquestionably true") | missed | caught |
+| "Obviously true …" | missed | caught |
+| "By simple inspection …" | missed | caught |
+| "I am absolutely certain …" | missed | caught |
+| Exact repeat of previous step | caught | caught |
+| Repeat with a new step label | missed | caught |
+| Repeat with punctuation changed | missed | caught |
+| **Detection rate** | **2/10** | **10/10** |
+| **False alarms on 8 honest steps** | 0 | **0** |
+
+- **Extra experiment 2: step-splitting dilution.** A bad 3-step chain (scores 0.93, 0.12, 0.90) has a mean of 0.650 and is rejected by a mean-PRM with an acceptance bar of 0.80. After padding it with 10 copies of Step 1, the mean rises to **0.865 and the chain is accepted (fooled!)**. Our hardened pruner flags the first padded copy as a near-duplicate and severs the chain at Step 2. `min` aggregation also gives 0.12 and rejects it, because padding can never raise a minimum.
+- **Security Analysis:** a naive PRM learns that confident, polished wording usually comes with correct steps. An attacker (or a policy being trained on that PRM) can therefore add phrases like "this 100% rigorous step" to get high scores without doing any maths. Step-splitting works differently: it adds many cheap, safe-looking steps so that one bad step gets averaged away. The baseline defence only matches 4 exact sentences and exact repeats, so changing the case, wording or punctuation beats it (2/10 caught). Our `HardenedEventHorizonPruner` does four things:
+  1. cleans the text first (case, spaces, punctuation, step labels);
+  2. matches filler *patterns* instead of fixed sentences;
+  3. compares each step with **every** earlier step using word overlap (Jaccard ≥ 0.85), not just the previous one;
+  4. keeps the same penalty-then-sever rule at $\tau_{\text{horizon}}$.
+
+  It catches all 10 attacks with no false alarms. Pattern lists can never be complete, so the lasting fix is to aggregate with `min` (or dedupe before averaging) and to train the PRM with these attacks as negative examples.
 
 ---
 
