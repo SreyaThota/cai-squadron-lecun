@@ -17,8 +17,8 @@
 | :--- | :--- | :--- | :--- |
 | **Systems Architect** | Sreya Thota | `tot_solver.py` | PASS / VERIFIED |
 | **Communications & Protocol Officer** | Arjun V R | `mcts_protocol.py` | PASS / VERIFIED |
-| **Data & Payload Specialist** | Squadron LeCun – Person 3 | `prm_evaluator.py` | PASS / VERIFIED |
-| **Security & Ethics Sentinel** | Squadron LeCun – Person 4 | `horizon_pruner.py` | PASS / VERIFIED |
+| **Data & Payload Specialist** | Vijaya Lakshmi Arigela | `prm_evaluator.py` | PASS / VERIFIED |
+| **Security & Ethics Sentinel** | Vasu Midde | `horizon_pruner.py` | PASS / VERIFIED |
 
 ---
 
