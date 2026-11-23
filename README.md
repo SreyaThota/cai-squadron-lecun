@@ -21,19 +21,21 @@
 | **Mission 04** | Betelgeuse & Orion Molecular Cloud (`SEC-04-ORI`) | *Subsystem 04: Plasma Ignition & Ethical Steering Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-04/problem_set/`](./docs/weeks/week-04/problem_set/) |
 | **Mission 05** | Crab Pulsar Remnant / Messier 1 (`SEC-05-M01`) | *Subsystem 05: Dual-Path Associative Memory Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-05/problem_set/`](./docs/weeks/week-05/problem_set/) |
 | **Mission 06** | Eta Carinae & Homunculus Nebula (`SEC-06-CAR`) | *Subsystem 06: Autonomous Warp State Machine & Deliberation Loop* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-06/problem_set/`](./docs/weeks/week-06/problem_set/) |
-| **Mission 07** | Sagittarius A* Supermassive Black Hole (`SEC-07-SGR`) | *Subsystem 07: Gravitational Search Horizon & Process Reward Evaluator* (+7.1%) | 🚧 **In Progress** | [`docs/weeks/week-07/problem_set/`](./docs/weeks/week-07/problem_set/) |
+| **Mission 07** | Sagittarius A* Supermassive Black Hole (`SEC-07-SGR`) | *Subsystem 07: Gravitational Search Horizon & Process Reward Evaluator* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-07/problem_set/`](./docs/weeks/week-07/problem_set/) |
 
 ---
 
 ## 🕳️ Mission 07: Station Roles & Deliverables Status
 
+All Mission 07 deliverables completed by **Squadron LeCun**. End-to-end check: `python docs/weeks/week-07/problem_set/run_mission07.py` (runs all 4 stations, the PUCT table check, a c_puct sweep and the integrated ToT → PRM → Pruner pipeline). Pure Python standard library.
+
 | Part | Station Role | Owner | Deliverable | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | 1 | Systems Architect | Sreya Thota | `tot_solver.py` | ✅ Done (harness + rule checks + Game-of-24 benchmark pass) |
-| 2 | Communications & Protocol Officer | Arjun V R | `mcts_protocol.py` | ✅ Pushed (harness passes) |
+| 2 | Communications & Protocol Officer | Arjun V R | `mcts_protocol.py` | ✅ Done (harness + PUCT table check + c_puct sweep pass) |
 | 3 | Data & Payload Specialist | Squadron LeCun – Person 3 | `prm_evaluator.py` | ✅ Done (harness + ORM trap + Math-Shepherd study pass) |
 | 4 | Security & Ethics Sentinel | Squadron LeCun – Person 4 | `horizon_pruner.py` | ✅ Done (harness + red-team suite + dilution defense pass) |
-| 5 | All 4 officers | Squadron LeCun | `mission-07-doc.md` → `mission-07-doc.pdf` | ⏳ Open |
+| 5 | All 4 officers | Squadron LeCun | `mission-07-doc.md` → [`mission-07-doc.pdf`](./docs/weeks/week-07/problem_set/mission-07-doc.pdf) | ✅ Done |
 
 ## 🌌 Mission 06: Station Roles & Deliverables Status
 
