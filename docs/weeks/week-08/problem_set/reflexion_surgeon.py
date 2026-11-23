@@ -9,6 +9,11 @@ Subsystem 08: ReWOO DAG Planner, Reflexion Surgeon & MemGPT Virtual Pager
 
 import hashlib
 import re
+import subprocess
+import sys
+import tempfile
+import textwrap
+from pathlib import Path
 from typing import Callable, Dict, List, Set, Tuple
 
 
@@ -125,6 +130,20 @@ class ReflexionSurgeon:
 
         for trial in range(1, self.max_trials + 1):
             duplicate = self.is_duplicate_patch(current_code)
+            if duplicate and trial > 1:
+                # Cycle guard: the Actor proposed code we already tested. Re-running it cannot
+                # change the result, so we record it, add a reflection that says so, and ask again.
+                note = ("[Reflection | CycleGuard]: The proposed patch is identical (SHA-256) to an "
+                        "earlier failed attempt. Constraint for next trial: produce a DIFFERENT fix.")
+                self.episodic_buffer.append(note)
+                if len(self.episodic_buffer) > self.buffer_cap:
+                    self.episodic_buffer.pop(0)
+                history.append({"trial": trial, "passed": False, "duplicate": True,
+                                "exception": "DuplicatePatch", "reflection": note})
+                if trial < self.max_trials:
+                    current_code = actor_patch_fn(current_code, list(self.episodic_buffer))
+                continue
+
             passed, stderr = evaluator_fn(current_code)
 
             if passed:
@@ -150,8 +169,7 @@ class ReflexionSurgeon:
             )
 
             if trial < self.max_trials:
-                next_code = actor_patch_fn(current_code, list(self.episodic_buffer))
-                current_code = next_code
+                current_code = actor_patch_fn(current_code, list(self.episodic_buffer))
 
         return {
             "success": False,
@@ -160,6 +178,113 @@ class ReflexionSurgeon:
             "episodic_buffer": list(self.episodic_buffer),
             "history": history,
         }
+
+
+# ==============================================================================
+# Protocol Officer Extensions (Squadron LeCun)
+#   A real Evaluator: candidate code is written to a temp file and executed with
+#   real unit tests in a separate Python process (timeout 5 s). The traceback the
+#   parser sees is the genuine CPython stderr, not a hand-written string.
+# ==============================================================================
+UNIT_TESTS = textwrap.dedent("""
+    import os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from candidate import normalize_xray_flux as f
+    assert f({'flux': 10.0, 'window_sec': 2.0}) == 5.0
+    assert f({'flux': 3.0, 'window_sec': 0}) == 0.0
+    assert f({'window_sec': 4.0}) == 0.0
+    assert f({'flux': '8', 'window_sec': 2}) == 4.0
+    assert f({'flux': 6.0, 'window_sec': -3.0}) == 0.0, "negative window must be rejected"
+""")
+
+
+def subprocess_evaluator(code_str: str) -> Tuple[bool, str]:
+    with tempfile.TemporaryDirectory() as d:
+        Path(d, "candidate.py").write_text(textwrap.dedent(code_str))
+        Path(d, "test_candidate.py").write_text(UNIT_TESTS)
+        try:
+            r = subprocess.run([sys.executable, "-I", "test_candidate.py"], cwd=d,
+                               capture_output=True, text=True, timeout=5)
+        except subprocess.TimeoutExpired:
+            return False, 'File "candidate.py", line 1\nTimeoutError: candidate ran longer than 5 s'
+        return r.returncode == 0, r.stderr
+
+
+# A rule-based Actor that reads ONLY the episodic memory (like an LLM conditioned on reflections)
+# and adds one guard per distinct lesson it finds there.
+FIXES = {
+    "ZeroDivisionError": "    if window == 0:\n        return 0.0\n",
+    "KeyError": None,  # handled by switching to .get()
+    "TypeError": "    flux = float(flux)\n",
+    "AssertionError": "    if window <= 0:\n        return 0.0\n",
+}
+
+
+def build_patch(lessons: List[str]) -> str:
+    use_get = any("KeyError" in r for r in lessons)
+    body = "def normalize_xray_flux(packet):\n"
+    body += ("    flux = packet.get('flux', 0.0)\n    window = packet.get('window_sec', 1.0)\n" if use_get
+             else "    flux = packet['flux']\n    window = packet['window_sec']\n")
+    for exc in ("TypeError", "AssertionError", "ZeroDivisionError"):
+        if any(exc in r for r in lessons) and FIXES[exc]:
+            body += FIXES[exc]
+    return body + "    return flux / window\n"
+
+
+def make_memory_actor(lesson_log: List[str]):
+    def actor(curr_code: str, reflections: List[str]) -> str:
+        return build_patch(reflections)
+    return actor
+
+
+BUGGY = "def normalize_xray_flux(packet):\n    return packet['flux'] / packet['window_sec']\n"
+
+
+def _ext_real_evaluator() -> None:
+    print("\n=== Extension 1: Reflexion with a REAL unit-test evaluator (subprocess) ===")
+    s = ReflexionSurgeon(max_trials=8, buffer_cap=3)
+    rep = s.run_repair_loop(BUGGY, subprocess_evaluator, make_memory_actor([]))
+    for h in rep["history"]:
+        print(f"  Trial {h['trial']}: {'PASS' if h['passed'] else h['exception']:<18} dup={h['duplicate']}")
+    print(f"Success={rep['success']} after {rep['trials_used']} trials")
+    print("Final code:\n" + textwrap.indent(rep["final_code"], "    "))
+    assert rep["success"] and subprocess_evaluator(rep["final_code"])[0]
+    d = s.parse_traceback(subprocess_evaluator(BUGGY)[1])
+    print(f"Parsed real traceback of the original bug: {d}")
+
+
+def _ext_buffer_ablation() -> None:
+    print("\n=== Extension 2: Episodic buffer size (Omega) ablation, max 8 trials ===")
+    print(f"{'Omega':>6}{'success':>9}{'trials':>8}  exceptions seen")
+    results = {}
+    for omega in (1, 2, 3, 5):
+        s = ReflexionSurgeon(max_trials=8, buffer_cap=omega)
+        rep = s.run_repair_loop(BUGGY, subprocess_evaluator, make_memory_actor([]))
+        seq = [h["exception"] if not h["passed"] else "PASS" for h in rep["history"]]
+        results[omega] = rep["success"]
+        print(f"{omega:>6}{str(rep['success']):>9}{rep['trials_used']:>8}  {' -> '.join(seq)}")
+    assert results[3] and not results[1]
+    print("[PASS] with Omega=1 the Actor forgets earlier lessons and cycles; Omega=3 drops only the oldest lesson (ZeroDivision), which the later 'window <= 0' guard already covers")
+
+
+def _ext_cycle_guard() -> None:
+    print("\n=== Extension 3: Cycle guard actually stops wasted evaluations ===")
+    calls = {"n": 0}
+
+    def counting_eval(code):
+        calls["n"] += 1
+        return subprocess_evaluator(code)
+    stubborn = lambda code, refl: BUGGY  # an Actor that keeps proposing the same broken code
+    s = ReflexionSurgeon(max_trials=6, buffer_cap=3)
+    rep = s.run_repair_loop(BUGGY, counting_eval, stubborn)
+    dups = sum(1 for h in rep["history"] if h["exception"] == "DuplicatePatch")
+    print(f"6 trials, duplicates caught: {dups}, real test runs: {calls['n']} (starter would run 6)")
+    ws = "def normalize_xray_flux(packet):\n\n        return packet['flux']   /   packet['window_sec']\n"
+    s2 = ReflexionSurgeon()
+    s2.is_duplicate_patch(BUGGY)
+    print(f"Whitespace-only change detected as duplicate: {s2.is_duplicate_patch(ws)} "
+          f"(inner spaces differ, so the line-strip normaliser treats it as new)")
+    assert dups == 5 and calls["n"] == 1
 
 
 # ==============================================================================
@@ -224,3 +349,8 @@ def normalize_xray_flux(packet):
     assert report["success"] is True and report["trials_used"] == 3
     assert surgeon.is_duplicate_patch(PATCH_V3) is True, "Duplicate patch SHA-256 guard failed!"
     print("[OK] Part 2 (Communications & Protocol Officer) verification passed.")
+
+    _ext_real_evaluator()
+    _ext_buffer_ablation()
+    _ext_cycle_guard()
+    print("\n[OK] Part 2 extensions passed.")
