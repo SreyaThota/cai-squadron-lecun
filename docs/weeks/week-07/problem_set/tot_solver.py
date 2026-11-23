@@ -168,6 +168,152 @@ class TreeOfThoughtsSolver:
 
 
 # ==============================================================================
+# Systems Architect Extensions (Squadron LeCun)
+#   1. Rule checks: budget, pruning, beam width, trajectory.
+#   2. Real benchmark: Game of 24 ("thruster synthesis") with a heuristic value
+#      function, comparing ToT-BFS vs ToT-DFS under different compute budgets.
+# Pure standard library.
+# ==============================================================================
+import itertools
+from fractions import Fraction
+
+TARGET = Fraction(24)
+
+
+def _fmt(nums: List[Fraction]) -> str:
+    return "[" + ", ".join(str(n) for n in sorted(nums)) + "]"
+
+
+def _parse(state: str) -> List[Fraction]:
+    """Each thought string ends with 'Remaining: [a, b, ...]'."""
+    inner = state.rsplit("Remaining: [", 1)[1].split("]", 1)[0]
+    return [Fraction(x) for x in inner.split(", ")] if inner else []
+
+
+def _combine(a: Fraction, b: Fraction):
+    yield f"{a} + {b}", a + b
+    yield f"{a} * {b}", a * b
+    yield f"{a} - {b}", a - b
+    yield f"{b} - {a}", b - a
+    if b != 0:
+        yield f"{a} / {b}", a / b
+    if a != 0:
+        yield f"{b} / {a}", b / a
+
+
+def game24_generator(node: ThoughtNode) -> List[str]:
+    """Propose every 'pick two numbers, apply one operation' next step."""
+    nums = _parse(node.state)
+    if len(nums) < 2:
+        return []
+    out, seen = [], set()
+    for i, j in itertools.combinations(range(len(nums)), 2):
+        rest = [nums[k] for k in range(len(nums)) if k not in (i, j)]
+        for expr, val in _combine(nums[i], nums[j]):
+            new = rest + [val]
+            key = tuple(sorted(new))
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(f"{expr} = {val} (Remaining: {_fmt(new)})")
+    return out
+
+
+def _reachable(nums: List[Fraction]) -> bool:
+    if len(nums) == 1:
+        return nums[0] == TARGET
+    for i, j in itertools.combinations(range(len(nums)), 2):
+        rest = [nums[k] for k in range(len(nums)) if k not in (i, j)]
+        if any(_reachable(rest + [v]) for _, v in _combine(nums[i], nums[j])):
+            return True
+    return False
+
+
+def game24_evaluator(thought: str) -> float:
+    """
+    Cheap value function in the style of the ToT paper's "sure / likely / impossible"
+    prompt. It only looks one step ahead (2 numbers left) and otherwise guesses from
+    how close the numbers are to 24, so it is a noisy heuristic, not an oracle.
+    """
+    nums = _parse(thought)
+    if len(nums) == 1:
+        return 0.99 if nums[0] == TARGET else 0.05
+    if len(nums) == 2:
+        return 0.90 if _reachable(nums) else 0.20
+    closest = min(abs(float(n) - 24) for n in nums)
+    big = max(float(n) for n in nums)
+    score = 0.75 - 0.01 * min(closest, 20) - (0.15 if big > 60 else 0.0)
+    return max(0.46, round(score, 3))  # 3-number states stay above the prune threshold
+
+
+def _run_rule_checks() -> None:
+    print("\n=== Extension 1: Rule Checks ===")
+    root = ThoughtNode("Prompt (Remaining: [4, 9, 10, 13])")
+    solver = TreeOfThoughtsSolver(max_expansions=7, beam_width=2, prune_threshold=0.45)
+    solver.bfs_beam_search(root, game24_generator, game24_evaluator, max_depth=3)
+    assert solver.expansion_count <= 7, "BFS broke the compute budget"
+    print(f"[PASS] BFS budget respected: {solver.expansion_count}/7 expansions")
+
+    solver.dfs_backtrack_search(ThoughtNode("Prompt (Remaining: [4, 9, 10, 13])"),
+                                game24_generator, game24_evaluator, max_depth=3)
+    assert solver.expansion_count <= 7, "DFS broke the compute budget"
+    print(f"[PASS] DFS budget respected: {solver.expansion_count}/7 expansions")
+
+    def walk(n):
+        yield n
+        for c in n.children:
+            yield from walk(c)
+
+    root = ThoughtNode("Prompt (Remaining: [4, 9, 10, 13])")
+    s = TreeOfThoughtsSolver(max_expansions=500, beam_width=3, prune_threshold=0.45)
+    s.bfs_beam_search(root, game24_generator, game24_evaluator, max_depth=3)
+    nodes = list(walk(root))
+    assert all(not n.children for n in nodes if n.is_pruned), "a pruned node was expanded"
+    assert all(n.step_score < 0.45 for n in nodes if n.is_pruned), "wrong node pruned"
+    print("[PASS] Pruned nodes are below threshold and never expanded")
+    per_depth = {}
+    for n in nodes:
+        if n.children:
+            per_depth.setdefault(n.depth, 0)
+            per_depth[n.depth] += 1
+    assert all(v <= 3 for d, v in per_depth.items() if d > 0), "beam width exceeded"
+    print(f"[PASS] At most B=3 nodes expanded per level: {per_depth}")
+
+    leaf = max(nodes, key=lambda n: n.depth)
+    traj = leaf.get_trajectory()
+    assert len(traj) == leaf.depth + 1 and traj[0] == root.state
+    print(f"[PASS] get_trajectory() length = depth + 1 = {len(traj)}")
+
+
+PUZZLES = [
+    [4, 9, 10, 13], [1, 2, 3, 4], [3, 3, 8, 8], [1, 5, 5, 5], [2, 3, 5, 12],
+    [1, 4, 5, 6], [6, 6, 6, 6], [2, 2, 2, 9], [1, 3, 4, 6], [5, 5, 5, 1],
+    [3, 4, 7, 8], [2, 7, 8, 9], [1, 1, 11, 11], [4, 4, 7, 7], [2, 5, 5, 10],
+    [1, 6, 11, 13], [3, 5, 7, 13], [1, 2, 7, 7], [4, 6, 9, 9], [2, 4, 10, 10],
+]
+
+
+def _run_benchmark() -> None:
+    print("\n=== Extension 2: Game-of-24 Benchmark (ToT-BFS vs ToT-DFS) ===")
+    solvable = [p for p in PUZZLES if _reachable([Fraction(x) for x in p])]
+    print(f"Puzzles: {len(solvable)} solvable | prune_threshold = 0.45 | max_depth = 3")
+    print(f"{'Method':<14}{'Budget':>7}{'Solved':>9}{'Avg exp.':>10}")
+    for budget in (40, 100, 250, 600):
+        for name, B in (("BFS (B=1)", 1), ("BFS (B=2)", 2), ("BFS (B=5)", 5), ("DFS", None)):
+            solved, used = 0, 0
+            for p in solvable:
+                root = ThoughtNode(f"Prompt (Remaining: {_fmt([Fraction(x) for x in p])})")
+                s = TreeOfThoughtsSolver(max_expansions=budget, beam_width=B or 1, prune_threshold=0.45)
+                if B is None:
+                    best = s.dfs_backtrack_search(root, game24_generator, game24_evaluator, 3)
+                else:
+                    best = s.bfs_beam_search(root, game24_generator, game24_evaluator, 3)
+                solved += _parse(best.state) == [TARGET]
+                used += s.expansion_count
+            print(f"{name:<14}{budget:>7}{solved:>5}/{len(solvable):<3}{used / len(solvable):>10.1f}")
+
+
+# ==============================================================================
 # Verification Harness for Part 1 (Systems Architect)
 # ==============================================================================
 if __name__ == "__main__":
@@ -216,3 +362,7 @@ if __name__ == "__main__":
     assert "[GOAL]" in best_bfs.state, "ToT-BFS failed to reach [GOAL] state!"
     assert "[GOAL]" in best_dfs.state, "ToT-DFS failed to reach [GOAL] state!"
     print("[OK] Part 1 (Systems Architect) verification passed.")
+
+    _run_rule_checks()
+    _run_benchmark()
+    print("\n[OK] Part 1 extensions passed.")

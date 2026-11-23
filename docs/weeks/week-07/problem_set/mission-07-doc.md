@@ -15,7 +15,7 @@
 
 | Station Role | Cadet Full Name | Deliverable File | Verification Status |
 | :--- | :--- | :--- | :--- |
-| **Systems Architect** | `[Insert Name]` | `tot_solver.py` | `[PASS / VERIFIED]` |
+| **Systems Architect** | Sreya Thota | `tot_solver.py` | PASS / VERIFIED |
 | **Communications & Protocol Officer** | `[Insert Name]` | `mcts_protocol.py` | `[PASS / VERIFIED]` |
 | **Data & Payload Specialist** | `[Insert Name]` | `prm_evaluator.py` | `[PASS / VERIFIED]` |
 | **Security & Ethics Sentinel** | `[Insert Name]` | `horizon_pruner.py` | `[PASS / VERIFIED]` |
@@ -91,12 +91,26 @@ graph TD
 ## 3. Station-by-Station Experimental Report
 
 ### Section A — Systems Architect (`tot_solver.py`)
-- **ToT-BFS vs. ToT-DFS Traversal Comparison:**
-  - `max_expansions` budget configured: `[e.g., 12]`
-  - `beam_width` ($B$) configured: `[e.g., 2]`
-  - `ToT-BFS` expansions used & terminal score: `[Insert results]`
-  - `ToT-DFS` expansions used & terminal score: `[Insert results]`
-- **Architectural Analysis:** `[Explain when Breadth-First Beam Search outperforms Depth-First Backtracking and how beam width B affects KV-cache memory and token cost.]`
+- **ToT-BFS vs. ToT-DFS Traversal Comparison (mission harness):**
+  - `max_expansions` budget configured: `12`
+  - `beam_width` ($B$) configured: `2`, `prune_threshold` ($v_{th}$): `0.45`
+  - `ToT-BFS` expansions used & terminal score: `5/12` expansions, reached `[GOAL]` (`4 * 6 = 24`), min-link cumulative score `0.85`
+  - `ToT-DFS` expansions used & terminal score: `5/12` expansions, reached the same `[GOAL]` trajectory, cumulative score `0.85`
+  - Both dead-end branches (`10 + 13 = 23`, `4 + 4 = 8`, score `0.25`) were pruned and never expanded.
+- **Extra benchmark: real Game of 24 (20 solvable puzzles, `max_depth = 3`):** the generator proposes every "pick two numbers, apply + − × ÷" step (about 30 children at the first level). The value function is a cheap heuristic in the style of the ToT paper's *sure / likely / impossible* prompt: exact check when 2 numbers are left, a rough "closeness to 24" guess otherwise.
+
+| Budget (`max_expansions`) | BFS (B=1) | BFS (B=2) | BFS (B=5) | DFS (backtracking) |
+| :---: | :---: | :---: | :---: | :---: |
+| 40 | 3/20 | 3/20 | 0/20 | 4/20 |
+| 100 | 4/20 | 5/20 | 3/20 | 8/20 |
+| 250 | 4/20 | 5/20 | 7/20 | 11/20 |
+| 600 | 4/20 (uses 39) | 5/20 (uses 55) | 7/20 (uses 102) | **19/20** (uses 382) |
+
+- **Architectural Analysis:**
+  - **BFS beam search** is cheap and predictable: it stops after `max_depth` levels, using at most about $B \times$ (children per node) expansions per level. It works well when the value function is reliable early on. Here the early guesses are noisy, so a wrong top-$B$ choice at depth 1 cannot be undone. Accuracy then plateaus (B=1 stays at 4/20 even with 600 budget), and more budget does not help.
+  - **DFS backtracking** keeps turning extra budget into accuracy (4 → 8 → 11 → 19 solved). When a path dies (score below $v_{th}$) it steps back and tries the next sibling, so it can recover from a bad early guess. The cost is less predictable compute, and a weak value function can let it wander.
+  - **Beam width $B$:** a larger $B$ keeps more partial thoughts alive. That raises accuracy once the budget is big enough (B=5: 0 → 7 solved), but every kept beam is its own sequence. On a real LLM each beam means one more KV-cache in memory and more generated tokens, so memory and token cost grow roughly linearly with $B$. With a small budget, a big $B$ is wasteful, because the budget runs out before the beams get deep (B=5 solves 0/20 at 40).
+  - **Takeaway:** prefer BFS with a small $B$ when the verifier is strong and latency must be bounded. Prefer DFS backtracking when the step verifier is noisy and extra test-time compute is available.
 
 ### Section B — Communications & Protocol Officer (`mcts_protocol.py`)
 - **PUCT Selection Trace Table:**

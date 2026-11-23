@@ -29,7 +29,7 @@
 
 | Part | Station Role | Owner | Deliverable | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | Systems Architect | Sreya Thota | `tot_solver.py` | 🚧 In Progress |
+| 1 | Systems Architect | Sreya Thota | `tot_solver.py` | ✅ Done (harness + rule checks + Game-of-24 benchmark pass) |
 | 2 | Communications & Protocol Officer | TBD | `mcts_protocol.py` | ⏳ Open |
 | 3 | Data & Payload Specialist | TBD | `prm_evaluator.py` | ⏳ Open |
 | 4 | Security & Ethics Sentinel | TBD | `horizon_pruner.py` | ⏳ Open |
