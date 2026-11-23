@@ -22,8 +22,19 @@
 | **Mission 05** | Crab Pulsar Remnant / Messier 1 (`SEC-05-M01`) | *Subsystem 05: Dual-Path Associative Memory Core* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-05/problem_set/`](./docs/weeks/week-05/problem_set/) |
 | **Mission 06** | Eta Carinae & Homunculus Nebula (`SEC-06-CAR`) | *Subsystem 06: Autonomous Warp State Machine & Deliberation Loop* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-06/problem_set/`](./docs/weeks/week-06/problem_set/) |
 | **Mission 07** | Sagittarius A* Supermassive Black Hole (`SEC-07-SGR`) | *Subsystem 07: Gravitational Search Horizon & Process Reward Evaluator* (+7.1%) | ✅ **All Parts Complete** | [`docs/weeks/week-07/problem_set/`](./docs/weeks/week-07/problem_set/) |
+| **Mission 08** | Cygnus X-1 Black Hole & Veil Nebula (`SEC-08-CYG`) | *Subsystem 08: ReWOO DAG Planner, Reflexion Surgeon & MemGPT Virtual Pager* (+7.1%) | 🚧 **In Progress** | [`docs/weeks/week-08/problem_set/`](./docs/weeks/week-08/problem_set/) |
 
 ---
+
+## 🌀 Mission 08: Station Roles & Deliverables Status
+
+| Part | Station Role | Owner | Deliverable | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Systems Architect | Sreya Thota | `rewoo_planner.py` | ⏳ Open |
+| 2 | Communications & Protocol Officer | Arjun V R | `reflexion_surgeon.py` | ⏳ Open |
+| 3 | Data & Payload Specialist | Vijaya Lakshmi Arigela | `memgpt_pager.py` | ⏳ Open |
+| 4 | Security & Ethics Sentinel | Vasu Midde | `sandbox_guardian.py` | ⏳ Open |
+| 5 | All 4 officers | Squadron LeCun | `mission-08-doc.md` → `mission-08-doc.pdf` | ⏳ Open |
 
 ## 🕳️ Mission 07: Station Roles & Deliverables Status
 
